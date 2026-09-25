@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Food Nutrition Analyzer{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card-custom p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <div class="stat-icon bg-success-subtle text-success mx-auto mb-2">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                    <h3 class="fw-bold">Create User Account</h3>
+                    <p class="text-muted small">Register to compute your nutritional profile and track daily meals</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('register') }}" class="needs-validation">
+                    <h6 class="fw-bold text-success mb-3"><i class="bi bi-person-lines-fill me-2"></i>Account Information</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label small fw-semibold">Full Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="e.g. Alex Johnson" value="{{ form_data.get('name', '') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label small fw-semibold">Email Address *</label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" value="{{ form_data.get('email', '') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="password" class="form-label small fw-semibold">Password *</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="At least 6 characters" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirm_password" class="form-label small fw-semibold">Confirm Password *</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Repeat password" required>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-success mb-3"><i class="bi bi-activity me-2"></i>Physical Profile & Health Metrics</h6>
+                    <p class="text-muted small">These measurements are used to calculate your BMI and Mifflin-St Jeor daily calorie requirement.</p>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="age" class="form-label small fw-semibold">Age (Years) *</label>
+                            <input type="number" class="form-control" id="age" name="age" min="10" max="120" placeholder="e.g. 21" value="{{ form_data.get('age', '') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="gender" class="form-label small fw-semibold">Gender *</label>
+                            <select class="form-select" id="gender" name="gender" required>
+                                <option value="Male" {% if form_data.get('gender') == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if form_data.get('gender') == 'Female' %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if form_data.get('gender') == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="height_cm" class="form-label small fw-semibold">Height (cm) *</label>
+                            <input type="number" step="0.1" class="form-control" id="height_cm" name="height_cm" min="50" max="250" placeholder="e.g. 175" value="{{ form_data.get('height_cm', '') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="weight_kg" class="form-label small fw-semibold">Weight (kg) *</label>
+                            <input type="number" step="0.1" class="form-control" id="weight_kg" name="weight_kg" min="20" max="300" placeholder="e.g. 68.5" value="{{ form_data.get('weight_kg', '') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="activity_level" class="form-label small fw-semibold">Physical Activity Level *</label>
+                            <select class="form-select" id="activity_level" name="activity_level" required>
+                                <option value="Sedentary" {% if form_data.get('activity_level') == 'Sedentary' %}selected{% endif %}>Sedentary (Desk job, little to no exercise)</option>
+                                <option value="Lightly Active" {% if form_data.get('activity_level') == 'Lightly Active' %}selected{% endif %}>Lightly Active (Light exercise 1-3 days/wk)</option>
+                                <option value="Moderately Active" {% if not form_data.get('activity_level') or form_data.get('activity_level') == 'Moderately Active' %}selected{% endif %}>Moderately Active (Moderate exercise 3-5 days/wk)</option>
+                                <option value="Very Active" {% if form_data.get('activity_level') == 'Very Active' %}selected{% endif %}>Very Active (Hard exercise 6-7 days/wk)</option>
+                                <option value="Extra Active" {% if form_data.get('activity_level') == 'Extra Active' %}selected{% endif %}>Extra Active (Very heavy workouts or physical job)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary-custom btn-lg">
+                            <i class="bi bi-check2-circle me-1"></i> Complete Registration
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <span class="text-muted small">Already have an account? </span>
+                        <a href="{{ url_for('login') }}" class="small fw-semibold text-success">Log In Here</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

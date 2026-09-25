@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Food Nutrition Analyzer{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <span class="badge-admin mb-2 d-inline-block">System Administration</span>
+            <h2 class="fw-bold mb-0">Administrator Dashboard</h2>
+            <p class="text-muted small mb-0">System metrics, registered user profiles, and database monitoring</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <a href="{{ url_for('admin_foods') }}" class="btn btn-primary-custom btn-sm">
+                <i class="bi bi-database-fill-gear me-1"></i>Manage Food Database
+            </a>
+            <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-box-arrow-right me-1"></i>Logout Admin
+            </a>
+        </div>
+    </div>
+
+    <!-- Stat Metric Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-widget d-flex align-items-center gap-3">
+                <div class="stat-icon bg-primary-subtle text-primary">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Registered Users</span>
+                    <span class="fw-bold fs-3 text-dark">{{ user_count }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-widget d-flex align-items-center gap-3">
+                <div class="stat-icon bg-success-subtle text-success">
+                    <i class="bi bi-egg-fried"></i>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Food Items in Database</span>
+                    <span class="fw-bold fs-3 text-dark">{{ food_count }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-widget d-flex align-items-center gap-3">
+                <div class="stat-icon bg-warning-subtle text-warning">
+                    <i class="bi bi-journal-check"></i>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Total Meals Logged</span>
+                    <span class="fw-bold fs-3 text-dark">{{ meal_count }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Distribution -->
+    {% if category_counts %}
+    <div class="card-custom p-3 mb-4 bg-white">
+        <span class="fw-bold small text-muted d-block mb-2"><i class="bi bi-tags me-1"></i>Foods per Category Distribution:</span>
+        <div class="d-flex flex-wrap gap-2">
+            {% for cat in category_counts %}
+            <span class="badge bg-light text-dark border p-2">
+                {{ cat.category }}: <strong class="text-success">{{ cat.count }}</strong>
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Registered Users Management Table -->
+    <div class="card-custom p-0 overflow-hidden mb-4">
+        <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+            <h5 class="fw-bold mb-0"><i class="bi bi-people me-2 text-primary"></i>Registered Users</h5>
+            <span class="badge bg-light text-dark border">{{ recent_users|length }} users shown</span>
+        </div>
+
+        {% if recent_users %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-muted">
+                    <tr>
+                        <th class="ps-4">User ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Age / Gender</th>
+                        <th>Activity Level</th>
+                        <th>Joined Date</th>
+                        <th class="pe-4 text-end">Meals Logged</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in recent_users %}
+                    <tr>
+                        <td class="ps-4 fw-bold text-muted">#{{ u.id }}</td>
+                        <td class="fw-semibold text-dark">{{ u.name }}</td>
+                        <td><code>{{ u.email }}</code></td>
+                        <td>{{ u.age }} yrs / {{ u.gender }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ u.activity_level }}</span></td>
+                        <td class="small text-muted">{{ (u.created_at|string)[:10] if u.created_at else 'Recent' }}</td>
+                        <td class="pe-4 text-end">
+                            <span class="badge bg-success-subtle text-success fs-6">{{ u.total_meals or 0 }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+            No registered users found.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Action Card -->
+    <div class="alert alert-light border d-flex justify-content-between align-items-center">
+        <div>
+            <h6 class="fw-bold mb-1"><i class="bi bi-database-gear text-primary me-2"></i>Need to add or modify foods in the database?</h6>
+            <p class="text-muted small mb-0">Administrators have full CRUD access (Create, Read, Update, Delete) on all food records.</p>
+        </div>
+        <a href="{{ url_for('admin_foods') }}" class="btn btn-outline-primary btn-sm">Manage Food Database &rarr;</a>
+    </div>
+</div>
+{% endblock %}

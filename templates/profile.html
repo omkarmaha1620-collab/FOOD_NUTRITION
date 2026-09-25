@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile & Health Metrics - Food Nutrition Analyzer{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">User Profile & Health Metrics</h2>
+            <p class="text-muted small mb-0">Manage your physical metrics, view BMI assessment, and estimated daily calorie requirements</p>
+        </div>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Profile Form Card -->
+        <div class="col-lg-6">
+            <div class="card-custom p-4 h-100">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="stat-icon bg-primary-subtle text-primary me-2">
+                        <i class="bi bi-person-gear"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Personal Profile</h5>
+                        <span class="text-muted small">Update your physical stats to refresh calculations</span>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('profile') }}">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Email Address</label>
+                        <input type="email" class="form-control bg-light" value="{{ user.email }}" readonly>
+                        <span class="form-text text-muted small">Email cannot be changed once registered.</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label small fw-semibold">Full Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="age" class="form-label small fw-semibold">Age (Years) *</label>
+                            <input type="number" class="form-control" id="age" name="age" min="10" max="120" value="{{ user.age }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="gender" class="form-label small fw-semibold">Gender *</label>
+                            <select class="form-select" id="gender" name="gender" required>
+                                <option value="Male" {% if user.gender == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if user.gender == 'Female' %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if user.gender == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="height_cm" class="form-label small fw-semibold">Height (cm) *</label>
+                            <input type="number" step="0.1" class="form-control" id="height_cm" name="height_cm" min="50" max="250" value="{{ user.height_cm }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="weight_kg" class="form-label small fw-semibold">Weight (kg) *</label>
+                            <input type="number" step="0.1" class="form-control" id="weight_kg" name="weight_kg" min="20" max="300" value="{{ user.weight_kg }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="activity_level" class="form-label small fw-semibold">Physical Activity Level *</label>
+                        <select class="form-select" id="activity_level" name="activity_level" required>
+                            <option value="Sedentary" {% if user.activity_level == 'Sedentary' %}selected{% endif %}>Sedentary (Little to no exercise, desk job)</option>
+                            <option value="Lightly Active" {% if user.activity_level == 'Lightly Active' %}selected{% endif %}>Lightly Active (Light exercise 1-3 days/wk)</option>
+                            <option value="Moderately Active" {% if user.activity_level == 'Moderately Active' %}selected{% endif %}>Moderately Active (Moderate exercise 3-5 days/wk)</option>
+                            <option value="Very Active" {% if user.activity_level == 'Very Active' %}selected{% endif %}>Very Active (Hard exercise 6-7 days/wk)</option>
+                            <option value="Extra Active" {% if user.activity_level == 'Extra Active' %}selected{% endif %}>Extra Active (Very heavy workout / physical job)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-custom w-100">
+                        <i class="bi bi-save me-1"></i> Update Profile & Recalculate
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Calculated Health Insights (BMI & Calorie Target) -->
+        <div class="col-lg-6">
+            <div class="d-flex flex-column gap-4">
+
+                <!-- MODULE 8: BMI Assessment Card -->
+                <div class="card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="stat-icon bg-info-subtle text-info">
+                                <i class="bi bi-speedometer"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0">Body Mass Index (BMI)</h5>
+                                <span class="text-muted small">Module 8: Standard screening formula</span>
+                            </div>
+                        </div>
+                        <span class="badge bg-{{ bmi.color }} fs-6 px-3 py-2">{{ bmi.category }}</span>
+                    </div>
+
+                    <div class="my-3 text-center p-3 bg-light rounded">
+                        <span class="display-6 fw-bold text-dark">{{ bmi.bmi }}</span>
+                        <span class="text-muted ms-1">kg/m²</span>
+                        <p class="text-muted small mt-1 mb-0">{{ bmi.advice }}</p>
+                    </div>
+
+                    <div class="small fw-semibold text-muted mb-1">Standard Categories:</div>
+                    <div class="bmi-scale-bar mb-2">
+                        <div class="bmi-seg-under" title="Underweight (&lt; 18.5)"></div>
+                        <div class="bmi-seg-normal" title="Normal weight (18.5 - 24.9)"></div>
+                        <div class="bmi-seg-over" title="Overweight (25 - 29.9)"></div>
+                        <div class="bmi-seg-obese" title="Obesity (&ge; 30)"></div>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>&lt; 18.5 Under</span>
+                        <span>18.5 - 24.9 Normal</span>
+                        <span>25 - 29.9 Over</span>
+                        <span>&ge; 30 Obese</span>
+                    </div>
+
+                    <div class="alert alert-light border mt-3 mb-0 p-2 small text-muted">
+                        <i class="bi bi-info-circle me-1 text-primary"></i>
+                        <strong>Medical Disclaimer:</strong> BMI is only a basic screening measure and not a medical diagnosis.
+                    </div>
+                </div>
+
+                <!-- MODULE 9: Estimated Daily Calorie Requirement Card -->
+                <div class="card-custom p-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="stat-icon bg-warning-subtle text-warning">
+                            <i class="bi bi-fire"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Daily Calorie Requirement</h5>
+                            <span class="text-muted small">Module 9: Mifflin-St Jeor equation with activity factor</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3 text-center">
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="d-block small text-muted">Estimated BMR</span>
+                                <span class="fw-bold fs-6 text-dark">{{ calories.bmr }}</span>
+                                <span class="small text-muted d-block">kcal/day</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="d-block small text-muted">Activity Factor</span>
+                                <span class="fw-bold fs-6 text-dark">&times; {{ calories.multiplier }}</span>
+                                <span class="small text-muted d-block">{{ calories.activity_level }}</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-success-subtle">
+                                <span class="d-block small text-success fw-semibold">Target (TDEE)</span>
+                                <span class="fw-bold fs-5 text-success">{{ calories.tdee }}</span>
+                                <span class="small text-success d-block">kcal/day</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="small fw-bold text-muted mb-2">Recommended Macro Distribution:</h6>
+                    <div class="row g-2 text-center mb-3">
+                        <div class="col-3">
+                            <span class="macro-badge macro-protein w-100 d-block">{{ calories.recommended_macros.protein_g }}g Pro</span>
+                        </div>
+                        <div class="col-3">
+                            <span class="macro-badge macro-carbs w-100 d-block">{{ calories.recommended_macros.carbs_g }}g Carb</span>
+                        </div>
+                        <div class="col-3">
+                            <span class="macro-badge macro-fat w-100 d-block">{{ calories.recommended_macros.fat_g }}g Fat</span>
+                        </div>
+                        <div class="col-3">
+                            <span class="macro-badge macro-fiber w-100 d-block">{{ calories.recommended_macros.fiber_g }}g Fib</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-light border mb-0 p-2 small text-muted">
+                        <i class="bi bi-info-circle me-1 text-warning"></i>
+                        <strong>Important:</strong> Clearly labeled as an estimated calorie requirement for educational reference, not medical advice.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

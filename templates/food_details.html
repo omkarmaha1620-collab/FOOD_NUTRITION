@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ food.name }} - Nutrition Calculator{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-3">
+        <a href="{{ url_for('food_search') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to Food Search
+        </a>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <!-- Food Overview & Baseline Per 100g -->
+        <div class="col-lg-5">
+            <div class="card-custom p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="badge bg-secondary-subtle text-secondary mb-1">{{ food.category }}</span>
+                        <h3 class="fw-bold text-dark mb-0">{{ food.name }}</h3>
+                        <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Standard Serving: {{ food.serving_size }}</span>
+                    </div>
+                </div>
+
+                <div class="border rounded p-3 bg-light mb-3">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-list-check text-primary me-2"></i>Baseline Facts (Per 100 Grams)</h6>
+                    <div class="row g-2 text-center">
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-white">
+                                <span class="d-block small text-muted">Calories</span>
+                                <span class="fw-bold text-danger">{{ food.calories_per_100g }}</span>
+                                <span class="d-block small text-muted">kcal</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-white">
+                                <span class="d-block small text-muted">Protein</span>
+                                <span class="fw-bold text-primary">{{ food.protein_per_100g }}g</span>
+                                <span class="d-block small text-muted">per 100g</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-white">
+                                <span class="d-block small text-muted">Carbs</span>
+                                <span class="fw-bold text-success">{{ food.carbs_per_100g }}g</span>
+                                <span class="d-block small text-muted">per 100g</span>
+                            </div>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <div class="p-2 border rounded bg-white">
+                                <span class="d-block small text-muted">Total Fat</span>
+                                <span class="fw-bold text-warning">{{ food.fat_per_100g }}g</span>
+                                <span class="d-block small text-muted">per 100g</span>
+                            </div>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <div class="p-2 border rounded bg-white">
+                                <span class="d-block small text-muted">Dietary Fiber</span>
+                                <span class="fw-bold text-purple" style="color: #7e22ce;">{{ food.fiber_per_100g }}g</span>
+                                <span class="d-block small text-muted">per 100g</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if food.micronutrients %}
+                <div class="alert alert-light border mb-0">
+                    <span class="fw-bold small d-block mb-1"><i class="bi bi-stars text-warning me-1"></i>Micronutrients & Benefits:</span>
+                    <p class="small text-muted mb-0">{{ food.micronutrients }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quantity-Based Live Calculation & Add to Meal Form -->
+        <div class="col-lg-7">
+            <div class="card-custom p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="stat-icon bg-success-subtle text-success">
+                            <i class="bi bi-calculator"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Quantity-Based Calculation</h5>
+                            <span class="text-muted small">Module 5: Scaled proportionally by gram intake</span>
+                        </div>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary">Live Calculator</span>
+                </div>
+
+                <!-- Mathematical Formula Banner -->
+                <div class="p-2 px-3 bg-light rounded border mb-4">
+                    <small class="text-muted d-block fw-semibold">Scientific Calculation Formula:</small>
+                    <code class="text-dark fw-bold">Nutrient Consumed = (Nutrient per 100g × Quantity in Grams) / 100</code>
+                </div>
+
+                <form method="POST" action="{{ url_for('add_meal') }}">
+                    <input type="hidden" name="food_id" value="{{ food.id }}">
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="calc-quantity-grams" class="form-label small fw-bold">Enter Quantity Consumed (Grams) *</label>
+                            <div class="input-group">
+                                <input type="number"
+                                       class="form-control form-control-lg fw-bold text-primary"
+                                       id="calc-quantity-grams"
+                                       name="quantity_grams"
+                                       value="100"
+                                       min="1"
+                                       max="5000"
+                                       step="1"
+                                       data-calories="{{ food.calories_per_100g }}"
+                                       data-protein="{{ food.protein_per_100g }}"
+                                       data-carbs="{{ food.carbs_per_100g }}"
+                                       data-fat="{{ food.fat_per_100g }}"
+                                       data-fiber="{{ food.fiber_per_100g }}"
+                                       required>
+                                <span class="input-group-text bg-white fw-bold">grams</span>
+                            </div>
+                            <span class="form-text text-muted small">Try 150g, 200g, etc. Values update instantly below.</span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="meal_type" class="form-label small fw-bold">Select Meal *</label>
+                            <select class="form-select form-select-lg" id="meal_type" name="meal_type" required>
+                                <option value="Breakfast">Breakfast</option>
+                                <option value="Lunch">Lunch</option>
+                                <option value="Dinner">Dinner</option>
+                                <option value="Snacks">Snacks</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="entry_date" class="form-label small fw-bold">Date of Consumption *</label>
+                        <input type="date" class="form-control" id="entry_date" name="entry_date" value="{{ today_date }}" required>
+                    </div>
+
+                    <!-- Live Calculated Result Preview Box -->
+                    <div class="p-3 rounded border mb-4" style="background-color: #f0fdf4; border-color: #86efac !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-success"><i class="bi bi-lightning-charge-fill me-1"></i>Calculated Nutrition for <span id="calc-val-grams-display">100</span>g:</span>
+                            <span class="badge bg-success">Dynamic Result</span>
+                        </div>
+                        <div class="row g-2 text-center">
+                            <div class="col-4">
+                                <div class="bg-white p-2 rounded border">
+                                    <span class="small text-muted d-block">Calories</span>
+                                    <span class="fw-bold fs-5 text-danger" id="calc-val-calories">{{ food.calories_per_100g }}</span>
+                                    <span class="small text-muted d-block">kcal</span>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="bg-white p-2 rounded border">
+                                    <span class="small text-muted d-block">Protein</span>
+                                    <span class="fw-bold fs-5 text-primary" id="calc-val-protein">{{ food.protein_per_100g }}</span>
+                                    <span class="small text-muted d-block">g</span>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="bg-white p-2 rounded border">
+                                    <span class="small text-muted d-block">Carbohydrates</span>
+                                    <span class="fw-bold fs-5 text-success" id="calc-val-carbs">{{ food.carbs_per_100g }}</span>
+                                    <span class="small text-muted d-block">g</span>
+                                </div>
+                            </div>
+                            <div class="col-6 mt-2">
+                                <div class="bg-white p-2 rounded border">
+                                    <span class="small text-muted d-block">Total Fat</span>
+                                    <span class="fw-bold fs-5 text-warning" id="calc-val-fat">{{ food.fat_per_100g }}</span>
+                                    <span class="small text-muted d-block">g</span>
+                                </div>
+                            </div>
+                            <div class="col-6 mt-2">
+                                <div class="bg-white p-2 rounded border">
+                                    <span class="small text-muted d-block">Dietary Fiber</span>
+                                    <span class="fw-bold fs-5 text-purple" style="color: #7e22ce;" id="calc-val-fiber">{{ food.fiber_per_100g }}</span>
+                                    <span class="small text-muted d-block">g</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary-custom btn-lg">
+                            <i class="bi bi-plus-circle me-1"></i> Add to Meal Diary
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

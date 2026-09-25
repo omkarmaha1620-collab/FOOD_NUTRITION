@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Portal Login - Food Nutrition Analyzer{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card-custom p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <div class="stat-icon bg-dark text-white mx-auto mb-2">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <h3 class="fw-bold">Administrator Portal</h3>
+                    <p class="text-muted small">Sign in with system administrator credentials to manage foods and view users</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('admin_login') }}">
+                    <div class="mb-3">
+                        <label for="identifier" class="form-label small fw-semibold">Admin Username or Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-person-badge text-muted"></i></span>
+                            <input type="text" class="form-control" id="identifier" name="identifier" placeholder="admin or admin@nutrition.com" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label small fw-semibold">Admin Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-key text-muted"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter admin password" required>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-dark btn-lg">
+                            <i class="bi bi-shield-check me-1"></i> Admin Sign In
+                        </button>
+                    </div>
+
+                    <div class="text-center mb-3">
+                        <a href="{{ url_for('login') }}" class="small text-muted"><i class="bi bi-arrow-left me-1"></i>Return to User Login</a>
+                    </div>
+                </form>
+
+                <!-- Demo Box for Evaluator/Student -->
+                <div class="p-3 border rounded bg-light">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="bi bi-info-circle-fill text-dark me-2"></i>
+                        <span class="fw-bold small">Default Admin Credentials (Viva)</span>
+                    </div>
+                    <p class="text-muted small mb-1"><strong>Email / User:</strong> <code>admin@nutrition.com</code> or <code>admin</code></p>
+                    <p class="text-muted small mb-0"><strong>Password:</strong> <code>Admin@123</code></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+
+{% block title %}Nutrition Report - Food Nutrition Analyzer{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Report Action Bar (Hidden in Print) -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 no-print">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-bar-graph text-success me-2"></i>Nutrition Report</h2>
+            <p class="text-muted small mb-0">{{ report_title }}</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button type="button" id="btn-print-report" class="btn btn-outline-dark btn-sm">
+                <i class="bi bi-printer me-1"></i>Print / Download Report
+            </button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary-custom btn-sm">
+                <i class="bi bi-speedometer2 me-1"></i>Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Form (Hidden in Print) -->
+    <div class="card-custom p-3 mb-4 bg-white no-print">
+        <form method="GET" action="{{ url_for('reports') }}" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">Report Period</label>
+                <div class="btn-group w-100" role="group">
+                    <a href="{{ url_for('reports', view='today') }}" class="btn btn-sm btn-outline-secondary {% if view_type == 'today' %}active{% endif %}">Today</a>
+                    <a href="{{ url_for('reports', view='weekly') }}" class="btn btn-sm btn-outline-secondary {% if view_type == 'weekly' %}active{% endif %}">Last 7 Days</a>
+                    <a href="{{ url_for('reports', view='custom', date=selected_date) }}" class="btn btn-sm btn-outline-secondary {% if view_type == 'custom' %}active{% endif %}">Custom Date</a>
+                </div>
+            </div>
+
+            {% if view_type == 'custom' %}
+            <div class="col-md-5">
+                <label class="form-label small fw-semibold">Select Date</label>
+                <input type="date" name="date" class="form-control form-control-sm" value="{{ selected_date }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary-custom btn-sm w-100">Load Date Report</button>
+            </div>
+            {% else %}
+            <div class="col-md-8 text-md-end text-muted small pt-3">
+                <i class="bi bi-calendar3 me-1"></i>Reporting Window: <strong>{{ start_date }}</strong> to <strong>{{ end_date }}</strong>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Print Header (Visible ONLY during print/PDF) -->
+    <div class="print-only d-none mb-4 pb-3 border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-0">Food Nutrition Analyzer - User Nutrition Report</h2>
+                <p class="text-muted mb-0 small">College Mini Project Academic Demonstration</p>
+            </div>
+            <div class="text-end small">
+                <p class="mb-0"><strong>User:</strong> {{ user.name }} (Age: {{ user.age }}, {{ user.gender }})</p>
+                <p class="mb-0"><strong>Height / Weight:</strong> {{ user.height_cm }} cm / {{ user.weight_kg }} kg</p>
+                <p class="mb-0"><strong>BMI:</strong> {{ bmi.bmi }} ({{ bmi.category }}) | <strong>Target:</strong> {{ target_calories }} kcal/day</p>
+                <p class="mb-0 text-muted">Generated on: {{ today_date }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aggregated Summary Metrics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="stat-widget text-center">
+                <span class="text-muted small d-block">Total Calories</span>
+                <span class="fw-bold fs-4 text-primary">{{ summary_totals.calories }}</span>
+                <span class="small text-muted d-block">kcal consumed</span>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-widget text-center">
+                <span class="text-muted small d-block">Daily Average</span>
+                <span class="fw-bold fs-4 text-dark">{{ avg_daily_calories }}</span>
+                <span class="small text-muted d-block">kcal / day (Target: {{ target_calories }})</span>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-widget text-center">
+                <span class="text-muted small d-block">Total Meals Logged</span>
+                <span class="fw-bold fs-4 text-success">{{ summary_totals.meal_count }}</span>
+                <span class="small text-muted d-block">meal item entries</span>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-widget text-center">
+                <span class="text-muted small d-block">Total Dietary Fiber</span>
+                <span class="fw-bold fs-4" style="color: #7e22ce;">{{ summary_totals.fiber }}</span>
+                <span class="small text-muted d-block">grams</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section (Chart.js) -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card-custom p-4 h-100">
+                <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart-line text-primary me-2"></i>Calorie Intake Trend</h5>
+                <div style="position: relative; height: 260px;">
+                    <canvas id="caloriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card-custom p-4 h-100">
+                <h5 class="fw-bold mb-3"><i class="bi bi-pie-chart text-success me-2"></i>Macronutrient Ratio</h5>
+                <div style="position: relative; height: 220px;">
+                    <canvas id="macrosDonutChart"></canvas>
+                </div>
+                <div class="d-flex justify-content-around text-center small mt-3">
+                    <div>
+                        <span class="d-block fw-bold text-primary">{{ summary_totals.protein }}g</span>
+                        <span class="text-muted">Protein</span>
+                    </div>
+                    <div>
+                        <span class="d-block fw-bold text-success">{{ summary_totals.carbs }}g</span>
+                        <span class="text-muted">Carbs</span>
+                    </div>
+                    <div>
+                        <span class="d-block fw-bold text-warning">{{ summary_totals.fat }}g</span>
+                        <span class="text-muted">Fat</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Meal Breakdown Table -->
+    <div class="card-custom p-0 overflow-hidden mb-4">
+        <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+            <h5 class="fw-bold mb-0">Detailed Consumption Log</h5>
+            <span class="badge bg-light text-dark border">{{ report_items|length }} entries recorded</span>
+        </div>
+
+        {% if report_items %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-muted">
+                    <tr>
+                        <th class="ps-4">Date</th>
+                        <th>Meal Type</th>
+                        <th>Food Item</th>
+                        <th>Category</th>
+                        <th>Portion</th>
+                        <th>Calories</th>
+                        <th>Protein</th>
+                        <th>Carbs</th>
+                        <th>Fat</th>
+                        <th class="pe-4">Fiber</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in report_items %}
+                    <tr>
+                        <td class="ps-4 small text-muted">{{ item.entry_date }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ item.meal_type }}</span></td>
+                        <td class="fw-semibold">{{ item.food_name }}</td>
+                        <td><span class="badge bg-secondary-subtle text-secondary small">{{ item.category }}</span></td>
+                        <td>{{ item.quantity_grams }}g</td>
+                        <td class="text-danger fw-bold">{{ item.calories }} kcal</td>
+                        <td class="text-primary">{{ item.protein }}g</td>
+                        <td class="text-success">{{ item.carbs }}g</td>
+                        <td class="text-warning">{{ item.fat }}g</td>
+                        <td class="pe-4" style="color: #7e22ce;">{{ item.fiber }}g</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light small fw-bold">
+                    <tr>
+                        <td class="ps-4" colspan="5">Period Grand Totals:</td>
+                        <td class="text-danger">{{ summary_totals.calories }} kcal</td>
+                        <td class="text-primary">{{ summary_totals.protein }}g</td>
+                        <td class="text-success">{{ summary_totals.carbs }}g</td>
+                        <td class="text-warning">{{ summary_totals.fat }}g</td>
+                        <td class="pe-4" style="color: #7e22ce;">{{ summary_totals.fiber }}g</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-5 text-center text-muted">
+            <i class="bi bi-folder-x fs-1 d-block mb-2"></i>
+            <h5>No meals logged in this period.</h5>
+            <p class="small">Add foods to your meal diary to generate comprehensive nutritional reports.</p>
+            <a href="{{ url_for('add_meal') }}" class="btn btn-outline-success btn-sm">Add a Meal</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Educational Viva Note / Formula Verification Box -->
+    <div class="alert alert-light border small text-muted no-print">
+        <i class="bi bi-info-circle-fill text-primary me-2"></i>
+        <strong>Viva Demonstration Tip:</strong> The bar chart demonstrates daily trends compared against the Mifflin-St Jeor daily requirement ({{ target_calories }} kcal/day). The donut chart depicts macronutrient proportion. Quantity scaling respects: <code>(Per 100g × grams) / 100</code>.
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Calories Trend Chart
+    const ctxCal = document.getElementById('caloriesChart');
+    if (ctxCal) {
+        new Chart(ctxCal, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels|tojson }},
+                datasets: [
+                    {
+                        label: 'Calories Consumed (kcal)',
+                        data: {{ calories_trend|tojson }},
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: '#10b981',
+                        borderWidth: 1.5,
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Calories (kcal)' }
+                    }
+                }
+            }
+        });
+    }
+
+    // 2. Macronutrient Donut Chart
+    const ctxMacro = document.getElementById('macrosDonutChart');
+    if (ctxMacro) {
+        const macroData = {{ macro_pie_data|tojson }};
+        const total = macroData.reduce((a, b) => a + b, 0);
+
+        new Chart(ctxMacro, {
+            type: 'doughnut',
+            data: {
+                labels: ['Protein (g)', 'Carbs (g)', 'Fat (g)'],
+                datasets: [{
+                    data: total > 0 ? macroData : [1, 1, 1],
+                    backgroundColor: ['#0ea5e9', '#10b981', '#f59e0b'],
+                    borderWidth: 2,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

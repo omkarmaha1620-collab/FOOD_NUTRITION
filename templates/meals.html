@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Log Meal - Food Nutrition Analyzer{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-custom p-4 p-md-5">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="stat-icon bg-success-subtle text-success me-3">
+                        <i class="bi bi-journal-plus"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0">Record a Meal</h3>
+                        <p class="text-muted small mb-0">Select a food item, input your portion size, and log to your diary</p>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('add_meal') }}">
+                    <div class="mb-3">
+                        <label for="food_id_select" class="form-label small fw-bold">Select Food Item *</label>
+                        <select class="form-select form-select-lg" id="food_id_select" name="food_id" required>
+                            <option value="" disabled {% if not preselected_food_id %}selected{% endif %}>-- Choose from food database --</option>
+                            {% for food in foods %}
+                            <option value="{{ food.id }}"
+                                    data-calories="{{ food.calories_per_100g }}"
+                                    {% if preselected_food_id == food.id %}selected{% endif %}>
+                                {{ food.name }} ({{ food.category }}) - {{ food.calories_per_100g }} kcal / 100g
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text small">
+                            Looking for a specific food? <a href="{{ url_for('food_search') }}" class="text-success fw-semibold">Search Food Database</a>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="calc-quantity-grams" class="form-label small fw-bold">Quantity Consumed (Grams) *</label>
+                            <div class="input-group">
+                                <input type="number"
+                                       class="form-control"
+                                       id="calc-quantity-grams"
+                                       name="quantity_grams"
+                                       value="100"
+                                       min="1"
+                                       max="5000"
+                                       step="1"
+                                       required>
+                                <span class="input-group-text bg-white">grams</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="meal_type" class="form-label small fw-bold">Meal Type *</label>
+                            <select class="form-select" id="meal_type" name="meal_type" required>
+                                <option value="Breakfast" {% if request.args.get('meal_type') == 'Breakfast' %}selected{% endif %}>Breakfast</option>
+                                <option value="Lunch" {% if request.args.get('meal_type') == 'Lunch' %}selected{% endif %}>Lunch</option>
+                                <option value="Dinner" {% if request.args.get('meal_type') == 'Dinner' %}selected{% endif %}>Dinner</option>
+                                <option value="Snacks" {% if request.args.get('meal_type') == 'Snacks' %}selected{% endif %}>Snacks</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="entry_date" class="form-label small fw-bold">Date *</label>
+                        <input type="date"
+                               class="form-control"
+                               id="entry_date"
+                               name="entry_date"
+                               value="{{ request.args.get('entry_date') or today_date }}"
+                               required>
+                    </div>
+
+                    <!-- Formula Info -->
+                    <div class="bg-light p-3 rounded border mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-info-circle-fill text-success"></i>
+                            <span class="fw-semibold small">Proportional Nutrition Scaling:</span>
+                        </div>
+                        <p class="small text-muted mb-0">
+                            The system will automatically calculate calories, protein, carbohydrates, fats, and fiber using:
+                            <code>(Per 100g value × grams entered) / 100</code>
+                        </p>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary-custom btn-lg">
+                            <i class="bi bi-check2-circle me-1"></i> Save to Meal Diary
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

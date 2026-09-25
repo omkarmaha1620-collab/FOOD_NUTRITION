@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Food Search & Database - Food Nutrition Analyzer{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Food Database & Search</h2>
+            <p class="text-muted small mb-0">Browse nutritional benchmarks per 100 grams and select foods to compute portions</p>
+        </div>
+        <div class="mt-2 mt-md-0">
+            <span class="badge bg-light text-dark border px-3 py-2">
+                <i class="bi bi-database me-1 text-success"></i> {{ foods|length }} Food Items Available
+            </span>
+        </div>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <div class="card-custom p-3 mb-4">
+        <form method="GET" action="{{ url_for('food_search') }}" class="row g-2 align-items-center">
+            <div class="col-md-7">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text"
+                           class="form-control"
+                           id="live-food-search"
+                           name="search"
+                           placeholder="Search foods by name (e.g. Apple, Rice, Chicken, Oats)..."
+                           value="{{ search_query }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="category" onchange="this.form.submit()">
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary-custom">
+                    <i class="bi bi-filter me-1"></i>Filter
+                </button>
+            </div>
+        </form>
+
+        <!-- Category Quick Pills -->
+        <div class="d-flex flex-wrap gap-2 mt-3 pt-3 border-top">
+            {% for cat in categories %}
+            <a href="{{ url_for('food_search', category=cat, search=search_query) }}"
+               class="category-pill {% if selected_category == cat %}active{% endif %}">
+               {{ cat }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Foods Grid -->
+    <div class="row g-3" id="food-cards-container">
+        {% for food in foods %}
+        <div class="col-lg-4 col-md-6 food-search-item" data-name="{{ food.name }}" data-category="{{ food.category }}">
+            <div class="food-card p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark">{{ food.name }}</h5>
+                        <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Typical serving: {{ food.serving_size }}</span>
+                    </div>
+                    <span class="badge bg-secondary-subtle text-secondary small">{{ food.category }}</span>
+                </div>
+
+                <div class="p-2 bg-light rounded my-2 border">
+                    <span class="small fw-semibold text-muted d-block mb-1">Per 100 grams:</span>
+                    <div class="d-flex flex-wrap gap-1">
+                        <span class="macro-badge macro-calories" title="Calories">{{ food.calories_per_100g }} kcal</span>
+                        <span class="macro-badge macro-protein" title="Protein">{{ food.protein_per_100g }}g Pro</span>
+                        <span class="macro-badge macro-carbs" title="Carbohydrates">{{ food.carbs_per_100g }}g Carb</span>
+                        <span class="macro-badge macro-fat" title="Fat">{{ food.fat_per_100g }}g Fat</span>
+                        <span class="macro-badge macro-fiber" title="Dietary Fiber">{{ food.fiber_per_100g }}g Fib</span>
+                    </div>
+                </div>
+
+                {% if food.micronutrients %}
+                <p class="text-muted small mb-3">
+                    <i class="bi bi-stars text-warning me-1"></i><strong>Key Nutrients:</strong> {{ food.micronutrients }}
+                </p>
+                {% endif %}
+
+                <div class="mt-auto pt-2 border-top d-flex gap-2">
+                    <a href="{{ url_for('food_details', food_id=food.id) }}" class="btn btn-primary-custom btn-sm flex-grow-1">
+                        <i class="bi bi-calculator me-1"></i>Calculate & Add
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted mb-2"><i class="bi bi-search fs-1"></i></div>
+            <h5 class="fw-bold text-muted">No food items found matching your criteria.</h5>
+            <p class="text-muted small">Try searching with a different keyword or select "All" categories.</p>
+            <a href="{{ url_for('food_search') }}" class="btn btn-outline-secondary btn-sm">Reset Filter</a>
+        </div>
+        {% endfor %}
+
+        <!-- Client-side No Results State (Hidden by default) -->
+        <div class="col-12 text-center py-5" id="no-search-results" style="display: none;">
+            <div class="text-muted mb-2"><i class="bi bi-emoji-neutral fs-1"></i></div>
+            <h5 class="fw-bold text-muted">No matching food items found on this page.</h5>
+            <p class="text-muted small">Adjust your search term or clear the filter.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

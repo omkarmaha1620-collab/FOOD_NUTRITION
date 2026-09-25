@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Food Nutrition Analyzer{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Welcome Banner & Date Header -->
+    <div class="card-custom p-4 bg-white mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <span class="badge bg-success-subtle text-success mb-1">Nutrition Dashboard</span>
+                <h2 class="fw-bold text-dark mb-1">Welcome back, {{ user.name }}!</h2>
+                <p class="text-muted small mb-0">Here is your daily nutritional breakdown for <strong>{{ selected_date }}</strong>.</p>
+            </div>
+            <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                <div class="d-inline-flex gap-2">
+                    <a href="{{ url_for('food_search') }}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-search me-1"></i>Search Food
+                    </a>
+                    <a href="{{ url_for('add_meal') }}" class="btn btn-primary-custom btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Add Meal
+                    </a>
+                    <a href="{{ url_for('reports') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-file-earmark-bar-graph me-1"></i>Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calories Overview Widgets -->
+    <div class="row g-3 mb-4">
+        <!-- Calorie Status Card -->
+        <div class="col-lg-8">
+            <div class="card-custom p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-fire text-danger me-2"></i>Daily Caloric Intake</h5>
+                    <span class="badge bg-light text-dark border">{{ calorie_percentage }}% of Target</span>
+                </div>
+
+                <div class="row g-3 text-center mb-3">
+                    <div class="col-4">
+                        <div class="p-2 border rounded bg-light">
+                            <span class="d-block small text-muted">Consumed</span>
+                            <span class="fw-bold fs-4 text-primary">{{ daily_totals.calories }}</span>
+                            <span class="small text-muted d-block">kcal</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 border rounded bg-light">
+                            <span class="d-block small text-muted">Estimated Target</span>
+                            <span class="fw-bold fs-4 text-dark">{{ calorie_info.tdee }}</span>
+                            <span class="small text-muted d-block">kcal</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 border rounded {% if remaining_calories > 0 %}bg-success-subtle{% else %}bg-warning-subtle{% endif %}">
+                            <span class="d-block small text-muted">Remaining</span>
+                            <span class="fw-bold fs-4 {% if remaining_calories > 0 %}text-success{% else %}text-danger{% endif %}">{{ remaining_calories }}</span>
+                            <span class="small text-muted d-block">kcal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calorie Progress Bar -->
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>0 kcal</span>
+                        <span class="fw-semibold text-dark">{{ daily_totals.calories }} / {{ calorie_info.tdee }} kcal</span>
+                        <span>Target: {{ calorie_info.tdee }} kcal</span>
+                    </div>
+                    <div class="progress-custom">
+                        <div class="progress-bar {% if calorie_percentage > 100 %}bg-danger{% elif calorie_percentage > 85 %}bg-warning{% else %}bg-success{% endif %}"
+                             role="progressbar"
+                             style="width: {{ [calorie_percentage, 100]|min }}%;"
+                             aria-valuenow="{{ daily_totals.calories }}"
+                             aria-valuemin="0"
+                             aria-valuemax="{{ calorie_info.tdee }}">
+                        </div>
+                    </div>
+                </div>
+                <span class="small text-muted fst-italic">Estimated daily calorie target based on your profile and activity factor.</span>
+            </div>
+        </div>
+
+        <!-- BMI Snapshot Card -->
+        <div class="col-lg-4">
+            <div class="card-custom p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-speedometer2 text-info me-2"></i>BMI Snapshot</h5>
+                        <span class="badge bg-{{ bmi.color }}">{{ bmi.category }}</span>
+                    </div>
+                    <div class="text-center my-3">
+                        <span class="display-6 fw-bold text-dark">{{ bmi.bmi }}</span>
+                        <span class="text-muted">kg/m²</span>
+                        <p class="text-muted small mt-2 mb-0">{{ bmi.advice }}</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="bmi-scale-bar mb-1">
+                        <div class="bmi-seg-under"></div>
+                        <div class="bmi-seg-normal"></div>
+                        <div class="bmi-seg-over"></div>
+                        <div class="bmi-seg-obese"></div>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted" style="font-size: 0.7rem;">
+                        <span>&lt;18.5</span>
+                        <span>18.5-24.9</span>
+                        <span>25-29.9</span>
+                        <span>&ge;30</span>
+                    </div>
+                    <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary btn-sm w-100 mt-3">
+                        <i class="bi bi-pencil-square me-1"></i>Update Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Macronutrients Summary Cards -->
+    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart text-success me-2"></i>Macronutrient Breakdown (Today)</h5>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="stat-widget">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-semibold small text-muted">Protein</span>
+                    <span class="macro-badge macro-protein">{{ daily_totals.protein }}g</span>
+                </div>
+                <div class="d-flex justify-content-between small text-muted mb-1">
+                    <span>Rec: {{ calorie_info.recommended_macros.protein_g }}g</span>
+                    <span>{{ ((daily_totals.protein / calorie_info.recommended_macros.protein_g) * 100)|round(0) if calorie_info.recommended_macros.protein_g > 0 else 0 }}%</span>
+                </div>
+                <div class="progress-custom">
+                    <div class="progress-bar bg-info" style="width: {{ [(daily_totals.protein / calorie_info.recommended_macros.protein_g * 100), 100]|min }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="stat-widget">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-semibold small text-muted">Carbohydrates</span>
+                    <span class="macro-badge macro-carbs">{{ daily_totals.carbs }}g</span>
+                </div>
+                <div class="d-flex justify-content-between small text-muted mb-1">
+                    <span>Rec: {{ calorie_info.recommended_macros.carbs_g }}g</span>
+                    <span>{{ ((daily_totals.carbs / calorie_info.recommended_macros.carbs_g) * 100)|round(0) if calorie_info.recommended_macros.carbs_g > 0 else 0 }}%</span>
+                </div>
+                <div class="progress-custom">
+                    <div class="progress-bar bg-success" style="width: {{ [(daily_totals.carbs / calorie_info.recommended_macros.carbs_g * 100), 100]|min }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="stat-widget">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-semibold small text-muted">Total Fat</span>
+                    <span class="macro-badge macro-fat">{{ daily_totals.fat }}g</span>
+                </div>
+                <div class="d-flex justify-content-between small text-muted mb-1">
+                    <span>Rec: {{ calorie_info.recommended_macros.fat_g }}g</span>
+                    <span>{{ ((daily_totals.fat / calorie_info.recommended_macros.fat_g) * 100)|round(0) if calorie_info.recommended_macros.fat_g > 0 else 0 }}%</span>
+                </div>
+                <div class="progress-custom">
+                    <div class="progress-bar bg-warning" style="width: {{ [(daily_totals.fat / calorie_info.recommended_macros.fat_g * 100), 100]|min }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="stat-widget">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-semibold small text-muted">Dietary Fiber</span>
+                    <span class="macro-badge macro-fiber">{{ daily_totals.fiber }}g</span>
+                </div>
+                <div class="d-flex justify-content-between small text-muted mb-1">
+                    <span>Rec: {{ calorie_info.recommended_macros.fiber_g }}g</span>
+                    <span>{{ ((daily_totals.fiber / calorie_info.recommended_macros.fiber_g) * 100)|round(0) }}%</span>
+                </div>
+                <div class="progress-custom">
+                    <div class="progress-bar bg-primary" style="width: {{ [(daily_totals.fiber / calorie_info.recommended_macros.fiber_g * 100), 100]|min }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meals Summary Breakdown -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold text-dark mb-0"><i class="bi bi-clock-history text-primary me-2"></i>Meal Summary Breakdown</h5>
+        <a href="{{ url_for('tracking', date=selected_date) }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-calendar-check me-1"></i>Detailed Tracking Diary
+        </a>
+    </div>
+
+    <div class="row g-3">
+        {% for mtype, data in meal_groups.items() %}
+        <div class="col-md-6 col-lg-3">
+            <div class="card-custom p-3 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold mb-0 text-dark">{{ mtype }}</h6>
+                    <span class="badge bg-light text-dark border">{{ data.calories }} kcal</span>
+                </div>
+                <div class="text-muted small mb-3">
+                    {{ data['items']|length }} item(s) logged
+                </div>
+
+                {% if data['items'] %}
+                <ul class="list-group list-group-flush small mb-3 flex-grow-1">
+                    {% for item in data['items'] %}
+                    <li class="list-group-item px-0 py-1 bg-transparent d-flex justify-content-between">
+                        <span class="text-truncate" style="max-width: 130px;" title="{{ item.food_name }}">{{ item.food_name }} ({{ item.quantity_grams }}g)</span>
+                        <span class="fw-semibold text-muted">{{ item.calories }} kcal</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center text-muted small py-3 my-auto">
+                    <i class="bi bi-cup-hot d-block fs-4 text-black-50 mb-1"></i>
+                    No {{ mtype|lower }} logged
+                </div>
+                {% endif %}
+
+                <a href="{{ url_for('add_meal') }}?meal_type={{ mtype }}&entry_date={{ selected_date }}" class="btn btn-sm btn-outline-success mt-auto">
+                    <i class="bi bi-plus-lg me-1"></i>Add to {{ mtype }}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
