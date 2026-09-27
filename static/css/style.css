@@ -172,10 +172,18 @@ main {
 }
 
 .progress-custom {
+  display: flex;
   height: 10px;
   border-radius: 10px;
   background-color: #e2e8f0;
   overflow: hidden;
+  width: 100%;
+}
+
+.progress-custom .progress-bar {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s ease;
 }
 
 /* --------------------------------------------------------------------------
@@ -301,3 +309,501 @@ main {
     padding: 0 !important;
   }
 }
+
+/* ==========================================================================
+   LOGIN PAGE - MODERN HEALTH & NUTRITION VISUAL DESIGN
+   ========================================================================== */
+
+.login-page-section {
+  position: relative;
+  min-height: calc(100vh - 180px);
+  display: flex;
+  align-items: center;
+  padding: 2.5rem 0;
+  background: radial-gradient(circle at 10% 15%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+              radial-gradient(circle at 90% 85%, rgba(14, 165, 233, 0.08) 0%, transparent 45%),
+              linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #ecfdf5 100%);
+  overflow: hidden;
+}
+
+/* Subtle Floating Decorative Elements */
+.login-decor-item {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.65;
+  filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.12));
+}
+
+.login-decor-1 {
+  top: 8%;
+  left: 4%;
+  animation: decorFloatSlow 6s ease-in-out infinite;
+}
+
+.login-decor-2 {
+  bottom: 12%;
+  left: 6%;
+  animation: decorFloatReverse 7s ease-in-out infinite;
+}
+
+.login-decor-3 {
+  top: 10%;
+  right: 5%;
+  animation: decorFloatSlow 8s 1s ease-in-out infinite;
+}
+
+.login-decor-4 {
+  bottom: 10%;
+  right: 6%;
+  animation: decorFloatReverse 6.5s 0.5s ease-in-out infinite;
+}
+
+.decor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 0.4rem 0.85rem;
+  border-radius: 30px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #065f46;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+/* Main Split Card Container */
+.login-split-card {
+  position: relative;
+  z-index: 1;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  box-shadow: 0 25px 50px -15px rgba(16, 185, 129, 0.15),
+              0 0 0 1px rgba(16, 185, 129, 0.05);
+  overflow: hidden;
+  animation: loginCardSlideUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Welcome Panel (Left Side) */
+.login-welcome-panel {
+  position: relative;
+  background: linear-gradient(150deg, #065f46 0%, #047857 55%, #059669 100%);
+  color: #ffffff;
+  padding: 3rem 2.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+/* Translucent Ambient Glow Rings */
+.welcome-glow-ring {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.welcome-glow-1 {
+  width: 320px;
+  height: 320px;
+  top: -80px;
+  right: -80px;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.15) 0%, transparent 70%);
+}
+
+.welcome-glow-2 {
+  width: 240px;
+  height: 240px;
+  bottom: -60px;
+  left: -60px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 70%);
+}
+
+.welcome-content-top {
+  position: relative;
+  z-index: 2;
+  animation: welcomeContentFade 0.75s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.welcome-brand-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 0.3rem 0.85rem;
+  border-radius: 30px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin-bottom: 1.25rem;
+}
+
+.welcome-headline {
+  font-size: 1.85rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #ffffff;
+  margin-bottom: 0.85rem;
+}
+
+.welcome-subtitle {
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+  margin-bottom: 1.75rem;
+}
+
+/* Value Highlights List */
+.welcome-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.welcome-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.welcome-feature-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: #a7f3d0;
+  flex-shrink: 0;
+}
+
+/* Glassmorphic Quote Card */
+.quote-card-container {
+  position: relative;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 14px;
+  padding: 1.25rem 1.4rem;
+  margin-top: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.quote-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.quote-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #fde68a;
+  opacity: 0.9;
+}
+
+.quote-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.quote-body-wrapper {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+}
+
+.quote-text {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  font-style: italic;
+  color: #ffffff;
+  margin-bottom: 0;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.quote-text.quote-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.quote-text.quote-hidden {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.quote-dots-indicator {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+  justify-content: center;
+}
+
+.quote-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  outline: none;
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.quote-dot.active {
+  width: 18px;
+  border-radius: 10px;
+  background: #a7f3d0;
+}
+
+/* Form Panel (Right Side) */
+.login-form-panel {
+  padding: 3rem 2.75rem;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-form-header {
+  margin-bottom: 2rem;
+}
+
+.login-avatar-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--primary-subtle);
+  color: var(--primary-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  margin-bottom: 1rem;
+}
+
+.login-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+}
+
+.login-caption {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+/* Form Input Groups */
+.form-label-custom {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.4rem;
+}
+
+.input-group-custom {
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  transition: all 0.25s ease;
+  background: #ffffff;
+}
+
+.input-group-custom:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+}
+
+.input-group-custom .input-group-text {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  padding-left: 0.95rem;
+  padding-right: 0.65rem;
+}
+
+.input-group-custom .form-control {
+  border: none;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.92rem;
+  color: var(--text-main);
+  background: transparent;
+}
+
+.input-group-custom .form-control:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.btn-toggle-pwd {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  padding: 0 0.85rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.btn-toggle-pwd:hover {
+  color: var(--text-main);
+}
+
+/* Login Action Button */
+.btn-login-action {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-login-action:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(16, 185, 129, 0.35);
+}
+
+.btn-login-action:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+/* Demo Credentials Box */
+.demo-box-card {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.15rem;
+  transition: border-color 0.2s ease;
+}
+
+.demo-box-card:hover {
+  border-color: var(--primary);
+}
+
+.btn-quick-fill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+/* Keyframe Animations */
+@keyframes loginCardSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes welcomeContentFade {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes decorFloatSlow {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+@keyframes decorFloatReverse {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(10px) rotate(-2deg);
+  }
+}
+
+/* Accessibility: Prefers Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .login-split-card,
+  .welcome-content-top,
+  .login-decor-item,
+  .quote-text,
+  .btn-login-action {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 991.98px) {
+  .login-page-section {
+    padding: 1.5rem 0;
+  }
+  .login-welcome-panel {
+    padding: 2.25rem 2rem;
+  }
+  .login-form-panel {
+    padding: 2.25rem 2rem;
+  }
+  .welcome-headline {
+    font-size: 1.5rem;
+  }
+  .login-decor-item {
+    display: none;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .login-welcome-panel {
+    padding: 1.75rem 1.5rem;
+  }
+  .login-form-panel {
+    padding: 1.75rem 1.5rem;
+  }
+  .welcome-headline {
+    font-size: 1.35rem;
+  }
+}
+

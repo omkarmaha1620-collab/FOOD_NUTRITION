@@ -49,6 +49,40 @@ def inject_current_year_and_user():
         'is_admin_logged_in': 'admin_id' in session
     }
 
+def calculate_progress_metric(consumed, recommended):
+    """
+    Calculate dynamic percentage and visual bar fill width with safety caps.
+    Used for dashboard calorie and macronutrient progress indicators.
+    """
+    consumed_val = float(consumed or 0.0)
+    recommended_val = float(recommended or 0.0)
+
+    if recommended_val <= 0.0 or consumed_val <= 0.0:
+        return {
+            'consumed': max(0.0, consumed_val),
+            'recommended': max(0.0, recommended_val),
+            'percentage': 0.0,
+            'fill_width': 0.0,
+            'display_pct': 0
+        }
+
+    raw_pct = (consumed_val / recommended_val) * 100.0
+
+    if raw_pct < 1.0:
+        display_pct = round(raw_pct, 2)
+    else:
+        display_pct = round(raw_pct, 1)
+
+    fill_width = round(max(0.0, min(100.0, raw_pct)), 2)
+
+    return {
+        'consumed': consumed_val,
+        'recommended': recommended_val,
+        'percentage': round(raw_pct, 1),
+        'fill_width': fill_width,
+        'display_pct': display_pct
+    }
+
 # -----------------------------------------------------------------------------
 # PUBLIC ROUTES
 # -----------------------------------------------------------------------------
@@ -71,7 +105,7 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     """User registration with input validation and password hashing"""
-    if 'user_id' in session:
+    if request.method == 'GET' and 'user_id' in session:
         return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
@@ -143,6 +177,7 @@ def register():
                 (name, email, password_hash, age_int, gender, height_flt, weight_flt, activity_level)
             )
 
+            session.clear()
             flash('Registration successful! You can now log in.', 'success')
             return redirect(url_for('login'))
 
@@ -155,7 +190,7 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Session-based authentication with password verification"""
-    if 'user_id' in session:
+    if request.method == 'GET' and 'user_id' in session:
         return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
@@ -297,6 +332,10 @@ def dashboard():
         fetch_one=True
     )
 
+    if not user:
+        flash('User profile not found. Please log in again.', 'warning')
+        return redirect(url_for('logout'))
+
     bmi_info = calculate_bmi(user['weight_kg'], user['height_cm'])
     calorie_info = calculate_calorie_requirement(
         user['weight_kg'],
@@ -357,8 +396,19 @@ def dashboard():
             meal_groups[mtype][k] = round(meal_groups[mtype][k], 1)
 
     target_calories = calorie_info['tdee']
-    remaining_calories = max(0, round(target_calories - daily_totals['calories'], 1))
-    calorie_percentage = min(100, round((daily_totals['calories'] / target_calories) * 100, 1)) if target_calories > 0 else 0
+    consumed_calories = daily_totals['calories']
+    remaining_calories = max(0.0, round(target_calories - consumed_calories, 1))
+
+    calorie_progress = calculate_progress_metric(consumed_calories, target_calories)
+    calorie_percentage = calorie_progress['display_pct']
+
+    rec_macros = calorie_info.get('recommended_macros', {})
+    macro_progress = {
+        'protein': calculate_progress_metric(daily_totals['protein'], rec_macros.get('protein_g', 0.0)),
+        'carbs': calculate_progress_metric(daily_totals['carbs'], rec_macros.get('carbs_g', 0.0)),
+        'fat': calculate_progress_metric(daily_totals['fat'], rec_macros.get('fat_g', 0.0)),
+        'fiber': calculate_progress_metric(daily_totals['fiber'], rec_macros.get('fiber_g', 0.0)),
+    }
 
     return render_template(
         'dashboard.html',
@@ -368,6 +418,8 @@ def dashboard():
         daily_totals=daily_totals,
         remaining_calories=remaining_calories,
         calorie_percentage=calorie_percentage,
+        calorie_progress=calorie_progress,
+        macro_progress=macro_progress,
         meal_groups=meal_groups,
         selected_date=selected_date
     )
@@ -624,6 +676,10 @@ def tracking():
         (user_id,),
         fetch_one=True
     )
+    if not user:
+        flash('User profile not found. Please log in again.', 'warning')
+        return redirect(url_for('logout'))
+
     calorie_info = calculate_calorie_requirement(
         user['weight_kg'], user['height_cm'], user['age'], user['gender'], user['activity_level']
     )
@@ -714,6 +770,10 @@ def reports():
         (user_id,),
         fetch_one=True
     )
+    if not user:
+        flash('User profile not found. Please log in again.', 'warning')
+        return redirect(url_for('logout'))
+
     calorie_info = calculate_calorie_requirement(
         user['weight_kg'], user['height_cm'], user['age'], user['gender'], user['activity_level']
     )
@@ -840,7 +900,7 @@ def reports():
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     """Separate login portal for administrators"""
-    if 'admin_id' in session:
+    if request.method == 'GET' and 'admin_id' in session:
         return redirect(url_for('admin_dashboard'))
 
     if request.method == 'POST':

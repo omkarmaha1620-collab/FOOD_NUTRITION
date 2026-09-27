@@ -15,6 +15,10 @@ class NutritionAnalyzerTestCase(unittest.TestCase):
         # Clean up test accounts to ensure idempotent runs
         execute_update("DELETE FROM users WHERE email IN ('alice@example.com', 'testuser@example.com')")
         execute_update("DELETE FROM food_items WHERE name = 'Greek Honey Yogurt'")
+        # Ensure baseline demo user 1 is preserved
+        execute_update(
+            "UPDATE users SET name='John Doe', age=22, gender='Male', height_cm=175.0, weight_kg=70.0, activity_level='Moderately Active' WHERE id=1"
+        )
 
     def test_01_home_page(self):
         """Test home landing page renders successfully"""
@@ -74,6 +78,17 @@ class NutritionAnalyzerTestCase(unittest.TestCase):
         self.assertEqual(res_update.status_code, 200)
         self.assertIn(b'Profile updated successfully', res_update.data)
 
+        # Restore user 1 baseline so test suite is idempotent and does not mutate demo account
+        restore_data = {
+            'name': 'John Doe',
+            'age': '22',
+            'gender': 'Male',
+            'height_cm': '175.0',
+            'weight_kg': '70.0',
+            'activity_level': 'Moderately Active'
+        }
+        self.client.post('/profile', data=restore_data, follow_redirects=True)
+
     def test_04_food_search_and_api_calculation(self):
         """Test Module 4 & 5: Food search and quantity calculations"""
         with self.client.session_transaction() as sess:
@@ -132,7 +147,7 @@ class NutritionAnalyzerTestCase(unittest.TestCase):
         # Admin login
         res_admin_login = self.client.post('/admin/login', data={
             'identifier': 'admin',
-            'password': 'Admin@123'
+            'password': 'Rakshitha@456'
         }, follow_redirects=True)
         self.assertEqual(res_admin_login.status_code, 200)
         self.assertIn(b'Administrator Dashboard', res_admin_login.data)
@@ -152,6 +167,93 @@ class NutritionAnalyzerTestCase(unittest.TestCase):
         res_add_food = self.client.post('/admin/foods/add', data=new_food_data, follow_redirects=True)
         self.assertEqual(res_add_food.status_code, 200)
         self.assertIn(b'Greek Honey Yogurt', res_add_food.data)
+
+    def test_08_user_session_consistency(self):
+        """Verify dashboard displays data belonging to the EXACT authenticated user, preventing stale session crossover"""
+        # Step 1: Login as User 1 (John Doe)
+        res_john = self.client.post('/login', data={
+            'email': 'john@example.com',
+            'password': 'User@123'
+        }, follow_redirects=True)
+        self.assertEqual(res_john.status_code, 200)
+        self.assertIn(b'Welcome back, John Doe!', res_john.data)
+        self.assertIn(b'22.9', res_john.data)
+        self.assertIn(b'2618', res_john.data)
+
+        # Step 2: Register a second user (Bob)
+        reg_bob = {
+            'name': 'Bob Tester',
+            'email': 'bob@example.com',
+            'password': 'Password@123',
+            'confirm_password': 'Password@123',
+            'age': '30',
+            'gender': 'Male',
+            'height_cm': '180.0',
+            'weight_kg': '80.0',
+            'activity_level': 'Sedentary'
+        }
+        self.client.post('/register', data=reg_bob, follow_redirects=True)
+
+        # Step 3: Login as Bob on the same client WITHOUT calling logout first
+        # This simulates a browser with an existing active session submitting the login form
+        res_bob = self.client.post('/login', data={
+            'email': 'bob@example.com',
+            'password': 'Password@123'
+        }, follow_redirects=True)
+        self.assertEqual(res_bob.status_code, 200)
+
+        # Verify Bob's dashboard is displayed, NOT John's
+        self.assertIn(b'Welcome back, Bob Tester!', res_bob.data)
+        self.assertNotIn(b'Welcome back, John Doe!', res_bob.data)
+        self.assertNotIn(b'Welcome back, Johnathan Doe!', res_bob.data)
+        self.assertIn(b'24.7', res_bob.data)   # BMI: 80 / (1.8^2) = 24.69 -> 24.7
+
+        # Clean up Bob
+        execute_update("DELETE FROM users WHERE email = 'bob@example.com'")
+
+    def test_09_dashboard_progress_bars(self):
+        """Verify dynamic calculations, fill widths, display percentages, and edge cases for dashboard progress bars"""
+        from app import calculate_progress_metric
+        import re
+
+        # Login as User 1
+        self.client.post('/login', data={'email': 'john@example.com', 'password': 'User@123'})
+        res = self.client.get('/dashboard')
+        self.assertEqual(res.status_code, 200)
+        html = res.data.decode('utf-8')
+
+        # Extract progress bars
+        prog_bars = re.findall(r'<div class="progress-bar[^"]*"\s+role="progressbar"\s+style="width:\s*([^;"]+);?"', html)
+        self.assertEqual(len(prog_bars), 5)
+
+        # Baseline: 1 Apple consumed (52 kcal, 0.3g protein, 14g carbs, 0.2g fat, 2.4g fiber)
+        self.assertIn('1.99%', prog_bars[0])  # Calories ~2%
+        self.assertIn('0.23%', prog_bars[1])  # Protein <1%
+        self.assertIn('4.28%', prog_bars[2])  # Carbs ~4%
+        self.assertIn('0.23%', prog_bars[3])  # Fat <1%
+        self.assertIn('8.57%', prog_bars[4])  # Fiber ~9%
+
+        # Verify displayed text percentages
+        self.assertIn('2.0% of Target', html)
+        self.assertIn('0.23%', html)
+        self.assertIn('4.3%', html)
+        self.assertIn('8.6%', html)
+
+        # Edge cases for calculate_progress_metric helper
+        # 1. Zero consumed
+        zero_res = calculate_progress_metric(0, 2000)
+        self.assertEqual(zero_res['fill_width'], 0.0)
+        self.assertEqual(zero_res['display_pct'], 0)
+
+        # 2. Exceeded recommendation (capped at 100% visual width)
+        exceed_res = calculate_progress_metric(2500, 2000)
+        self.assertEqual(exceed_res['fill_width'], 100.0)
+        self.assertEqual(exceed_res['display_pct'], 125.0)
+
+        # 3. Missing/zero target (division by zero safeguard)
+        div_zero_res = calculate_progress_metric(100, 0)
+        self.assertEqual(div_zero_res['fill_width'], 0.0)
+        self.assertEqual(div_zero_res['display_pct'], 0)
 
 if __name__ == '__main__':
     unittest.main()

@@ -79,9 +79,9 @@ CREATE TABLE IF NOT EXISTS `meal_entries` (
 -- SEED DATA
 -- ==============================================================
 
--- 1. Insert Default Admin (Password: Admin@123)
+-- 1. Insert Default Admin (Password: Rakshitha@456)
 INSERT IGNORE INTO `admins` (`username`, `email`, `password_hash`, `full_name`) VALUES
-('admin', 'admin@nutrition.com', 'scrypt:32768:8:1$DBpqESyOw72OcLyF$61f4bab7d8101744d5f567292c2119753d031bec5853b9d20acd1c7499162b5b51d974a78f84239df97d538c2ee38762b2980fb2d99e2ce439dd1198b5651ed1', 'System Administrator');
+('admin', 'admin@nutrition.com', 'scrypt:32768:8:1$JzAPPegaXTq17Jzx$4a2684a02788638ddd8b03bad59d6358e7d43f819a8f96bb20d2bb366c0e1bceda46580cb3502f9f278a0129e2c6406b2572c946bb62643e4ca390fd5d8e47db', 'System Administrator');
 
 -- 2. Insert Demo User (Password: User@123)
 -- Age 22, Male, 175 cm, 70 kg, Moderately Active -> BMI = 22.86 (Normal weight)

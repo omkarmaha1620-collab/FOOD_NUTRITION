@@ -35,7 +35,7 @@
             <div class="card-custom p-4 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0"><i class="bi bi-fire text-danger me-2"></i>Daily Caloric Intake</h5>
-                    <span class="badge bg-light text-dark border">{{ calorie_percentage }}% of Target</span>
+                    <span class="badge bg-light text-dark border">{{ calorie_progress.display_pct }}% of Target</span>
                 </div>
 
                 <div class="row g-3 text-center mb-3">
@@ -69,10 +69,10 @@
                         <span class="fw-semibold text-dark">{{ daily_totals.calories }} / {{ calorie_info.tdee }} kcal</span>
                         <span>Target: {{ calorie_info.tdee }} kcal</span>
                     </div>
-                    <div class="progress-custom">
-                        <div class="progress-bar {% if calorie_percentage > 100 %}bg-danger{% elif calorie_percentage > 85 %}bg-warning{% else %}bg-success{% endif %}"
+                    <div class="progress progress-custom">
+                        <div class="progress-bar {% if calorie_progress.percentage > 100 %}bg-danger{% elif calorie_progress.percentage > 85 %}bg-warning{% else %}bg-success{% endif %}"
                              role="progressbar"
-                             style="width: {{ [calorie_percentage, 100]|min }}%;"
+                             style="width: {{ calorie_progress.fill_width }}%;"
                              aria-valuenow="{{ daily_totals.calories }}"
                              aria-valuemin="0"
                              aria-valuemax="{{ calorie_info.tdee }}">
@@ -128,11 +128,16 @@
                     <span class="macro-badge macro-protein">{{ daily_totals.protein }}g</span>
                 </div>
                 <div class="d-flex justify-content-between small text-muted mb-1">
-                    <span>Rec: {{ calorie_info.recommended_macros.protein_g }}g</span>
-                    <span>{{ ((daily_totals.protein / calorie_info.recommended_macros.protein_g) * 100)|round(0) if calorie_info.recommended_macros.protein_g > 0 else 0 }}%</span>
+                    <span>Rec: {{ macro_progress.protein.recommended }}g</span>
+                    <span>{{ macro_progress.protein.display_pct }}%</span>
                 </div>
-                <div class="progress-custom">
-                    <div class="progress-bar bg-info" style="width: {{ [(daily_totals.protein / calorie_info.recommended_macros.protein_g * 100), 100]|min }}%"></div>
+                <div class="progress progress-custom">
+                    <div class="progress-bar bg-info"
+                         role="progressbar"
+                         style="width: {{ macro_progress.protein.fill_width }}%;"
+                         aria-valuenow="{{ daily_totals.protein }}"
+                         aria-valuemin="0"
+                         aria-valuemax="{{ macro_progress.protein.recommended }}"></div>
                 </div>
             </div>
         </div>
@@ -144,11 +149,16 @@
                     <span class="macro-badge macro-carbs">{{ daily_totals.carbs }}g</span>
                 </div>
                 <div class="d-flex justify-content-between small text-muted mb-1">
-                    <span>Rec: {{ calorie_info.recommended_macros.carbs_g }}g</span>
-                    <span>{{ ((daily_totals.carbs / calorie_info.recommended_macros.carbs_g) * 100)|round(0) if calorie_info.recommended_macros.carbs_g > 0 else 0 }}%</span>
+                    <span>Rec: {{ macro_progress.carbs.recommended }}g</span>
+                    <span>{{ macro_progress.carbs.display_pct }}%</span>
                 </div>
-                <div class="progress-custom">
-                    <div class="progress-bar bg-success" style="width: {{ [(daily_totals.carbs / calorie_info.recommended_macros.carbs_g * 100), 100]|min }}%"></div>
+                <div class="progress progress-custom">
+                    <div class="progress-bar bg-success"
+                         role="progressbar"
+                         style="width: {{ macro_progress.carbs.fill_width }}%;"
+                         aria-valuenow="{{ daily_totals.carbs }}"
+                         aria-valuemin="0"
+                         aria-valuemax="{{ macro_progress.carbs.recommended }}"></div>
                 </div>
             </div>
         </div>
@@ -160,11 +170,16 @@
                     <span class="macro-badge macro-fat">{{ daily_totals.fat }}g</span>
                 </div>
                 <div class="d-flex justify-content-between small text-muted mb-1">
-                    <span>Rec: {{ calorie_info.recommended_macros.fat_g }}g</span>
-                    <span>{{ ((daily_totals.fat / calorie_info.recommended_macros.fat_g) * 100)|round(0) if calorie_info.recommended_macros.fat_g > 0 else 0 }}%</span>
+                    <span>Rec: {{ macro_progress.fat.recommended }}g</span>
+                    <span>{{ macro_progress.fat.display_pct }}%</span>
                 </div>
-                <div class="progress-custom">
-                    <div class="progress-bar bg-warning" style="width: {{ [(daily_totals.fat / calorie_info.recommended_macros.fat_g * 100), 100]|min }}%"></div>
+                <div class="progress progress-custom">
+                    <div class="progress-bar bg-warning"
+                         role="progressbar"
+                         style="width: {{ macro_progress.fat.fill_width }}%;"
+                         aria-valuenow="{{ daily_totals.fat }}"
+                         aria-valuemin="0"
+                         aria-valuemax="{{ macro_progress.fat.recommended }}"></div>
                 </div>
             </div>
         </div>
@@ -176,11 +191,16 @@
                     <span class="macro-badge macro-fiber">{{ daily_totals.fiber }}g</span>
                 </div>
                 <div class="d-flex justify-content-between small text-muted mb-1">
-                    <span>Rec: {{ calorie_info.recommended_macros.fiber_g }}g</span>
-                    <span>{{ ((daily_totals.fiber / calorie_info.recommended_macros.fiber_g) * 100)|round(0) }}%</span>
+                    <span>Rec: {{ macro_progress.fiber.recommended }}g</span>
+                    <span>{{ macro_progress.fiber.display_pct }}%</span>
                 </div>
-                <div class="progress-custom">
-                    <div class="progress-bar bg-primary" style="width: {{ [(daily_totals.fiber / calorie_info.recommended_macros.fiber_g * 100), 100]|min }}%"></div>
+                <div class="progress progress-custom">
+                    <div class="progress-bar bg-primary"
+                         role="progressbar"
+                         style="width: {{ macro_progress.fiber.fill_width }}%;"
+                         aria-valuenow="{{ daily_totals.fiber }}"
+                         aria-valuemin="0"
+                         aria-valuemax="{{ macro_progress.fiber.recommended }}"></div>
                 </div>
             </div>
         </div>

@@ -124,4 +124,102 @@ document.addEventListener('DOMContentLoaded', () => {
       if (bsAlert) bsAlert.close();
     }, 6000);
   });
+
+  // --------------------------------------------------------------------------
+  // 6. ROTATING INSPIRATIONAL QUOTES (Login Welcome Section)
+  // --------------------------------------------------------------------------
+  const quoteTextEl = document.getElementById('login-quote-text');
+  const quoteDots = document.querySelectorAll('.quote-dot');
+
+  if (quoteTextEl) {
+    const quotes = [
+      "Small changes in your meals can create big changes in your health.",
+      "Eat well, feel well, live well.",
+      "Your health starts with what you put on your plate.",
+      "Every healthy choice is a step toward a better you.",
+      "The journey to better nutrition starts with one meal."
+    ];
+    let currentQuoteIndex = 0;
+    let quoteInterval = null;
+
+    const setQuote = (index) => {
+      currentQuoteIndex = index;
+      quoteTextEl.classList.remove('quote-visible');
+      quoteTextEl.classList.add('quote-hidden');
+
+      setTimeout(() => {
+        quoteTextEl.textContent = quotes[currentQuoteIndex];
+        quoteTextEl.classList.remove('quote-hidden');
+        quoteTextEl.classList.add('quote-visible');
+
+        quoteDots.forEach((dot, dotIdx) => {
+          if (dotIdx === currentQuoteIndex) {
+            dot.classList.add('active');
+            dot.setAttribute('aria-current', 'true');
+          } else {
+            dot.classList.remove('active');
+            dot.removeAttribute('aria-current');
+          }
+        });
+      }, 350);
+    };
+
+    // Auto rotate every 4.5 seconds
+    quoteInterval = setInterval(() => {
+      const nextIndex = (currentQuoteIndex + 1) % quotes.length;
+      setQuote(nextIndex);
+    }, 4500);
+
+    // Interactive dots navigation
+    quoteDots.forEach((dot) => {
+      dot.addEventListener('click', () => {
+        const targetIdx = parseInt(dot.getAttribute('data-quote-index'), 10);
+        if (!isNaN(targetIdx) && targetIdx !== currentQuoteIndex) {
+          clearInterval(quoteInterval);
+          setQuote(targetIdx);
+          // Restart interval after interaction
+          quoteInterval = setInterval(() => {
+            const nextIndex = (currentQuoteIndex + 1) % quotes.length;
+            setQuote(nextIndex);
+          }, 4500);
+        }
+      });
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 7. PASSWORD VISIBILITY TOGGLE (Login Page)
+  // --------------------------------------------------------------------------
+  const togglePwdBtn = document.getElementById('btn-toggle-password');
+  const pwdInput = document.getElementById('password');
+  if (togglePwdBtn && pwdInput) {
+    togglePwdBtn.addEventListener('click', () => {
+      const isPassword = pwdInput.getAttribute('type') === 'password';
+      pwdInput.setAttribute('type', isPassword ? 'text' : 'password');
+      const icon = togglePwdBtn.querySelector('i');
+      if (icon) {
+        icon.className = isPassword ? 'bi bi-eye-slash text-muted' : 'bi bi-eye text-muted';
+      }
+      togglePwdBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 8. QUICK FILL DEMO CREDENTIALS (Viva / Evaluation Convenience)
+  // --------------------------------------------------------------------------
+  const btnFillDemo = document.getElementById('btn-fill-demo');
+  const emailInput = document.getElementById('email');
+  if (btnFillDemo && emailInput && pwdInput) {
+    btnFillDemo.addEventListener('click', () => {
+      emailInput.value = 'john@example.com';
+      pwdInput.value = 'User@123';
+      // Visual pulse indicator
+      emailInput.classList.add('is-valid');
+      pwdInput.classList.add('is-valid');
+      setTimeout(() => {
+        emailInput.classList.remove('is-valid');
+        pwdInput.classList.remove('is-valid');
+      }, 1500);
+    });
+  }
 });

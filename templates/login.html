@@ -3,58 +3,198 @@
 {% block title %}Login - Food Nutrition Analyzer{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card-custom p-4 p-md-5">
-                <div class="text-center mb-4">
-                    <div class="stat-icon bg-primary-subtle text-primary mx-auto mb-2">
-                        <i class="bi bi-box-arrow-in-right"></i>
-                    </div>
-                    <h3 class="fw-bold">User Login</h3>
-                    <p class="text-muted small">Access your daily nutrition dashboard and food logs</p>
-                </div>
+<section class="login-page-section">
+    <!-- Subtle Background Nutrition Floating Decor -->
+    <div class="login-decor-item login-decor-1">
+        <div class="decor-badge">
+            <i class="bi bi-apple text-danger"></i>
+            <span>Nutrient Precision</span>
+        </div>
+    </div>
+    <div class="login-decor-item login-decor-2">
+        <div class="decor-badge">
+            <i class="bi bi-fire text-warning"></i>
+            <span>Calorie Balance</span>
+        </div>
+    </div>
+    <div class="login-decor-item login-decor-3">
+        <div class="decor-badge">
+            <i class="bi bi-pie-chart-fill text-primary"></i>
+            <span>Macro Tracking</span>
+        </div>
+    </div>
+    <div class="login-decor-item login-decor-4">
+        <div class="decor-badge">
+            <i class="bi bi-heart-pulse-fill text-success"></i>
+            <span>Healthy Living</span>
+        </div>
+    </div>
 
-                <form method="POST" action="{{ url_for('login') }}">
-                    <div class="mb-3">
-                        <label for="email" class="form-label small fw-semibold">Email Address</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-envelope text-muted"></i></span>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required autofocus>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-10 col-lg-11">
+                <div class="login-split-card">
+                    <div class="row g-0">
+                        
+                        <!-- WELCOME & INSPIRATION PANEL (Left Side) -->
+                        <div class="col-lg-6">
+                            <div class="login-welcome-panel">
+                                <!-- Ambient Glow Rings -->
+                                <div class="welcome-glow-ring welcome-glow-1"></div>
+                                <div class="welcome-glow-ring welcome-glow-2"></div>
+
+                                <div class="welcome-content-top">
+                                    <div class="welcome-brand-pill">
+                                        <i class="bi bi-flower1"></i>
+                                        <span>Nourish & Flourish</span>
+                                    </div>
+                                    <h1 class="welcome-headline">
+                                        Welcome to Food Nutrition Analyzer
+                                    </h1>
+                                    <p class="welcome-subtitle">
+                                        Understand your food. Track your nutrition. Build healthier habits.
+                                    </p>
+
+                                    <!-- Value Highlights -->
+                                    <div class="welcome-feature-list">
+                                        <div class="welcome-feature-item">
+                                            <div class="welcome-feature-icon">
+                                                <i class="bi bi-calculator"></i>
+                                            </div>
+                                            <span>Gram-level Portion Nutrition Scaling</span>
+                                        </div>
+                                        <div class="welcome-feature-item">
+                                            <div class="welcome-feature-icon">
+                                                <i class="bi bi-speedometer2"></i>
+                                            </div>
+                                            <span>BMI Assessment & Mifflin-St Jeor Targets</span>
+                                        </div>
+                                        <div class="welcome-feature-item">
+                                            <div class="welcome-feature-icon">
+                                                <i class="bi bi-journal-check"></i>
+                                            </div>
+                                            <span>Comprehensive Daily Meal Diary & Visual Reports</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Rotating Inspirational Quote Card -->
+                                <div class="quote-card-container">
+                                    <div class="quote-header">
+                                        <i class="bi bi-quote quote-icon"></i>
+                                        <span class="quote-tag">Daily Inspiration</span>
+                                    </div>
+                                    <div class="quote-body-wrapper">
+                                        <p id="login-quote-text" class="quote-text quote-visible" aria-live="polite">
+                                            Small changes in your meals can create big changes in your health.
+                                        </p>
+                                    </div>
+                                    <!-- Rotating Quote Indicator Dots -->
+                                    <div class="quote-dots-indicator" role="tablist" aria-label="Quote Navigation">
+                                        <button type="button" class="quote-dot active" data-quote-index="0" aria-label="Quote 1" aria-current="true"></button>
+                                        <button type="button" class="quote-dot" data-quote-index="1" aria-label="Quote 2"></button>
+                                        <button type="button" class="quote-dot" data-quote-index="2" aria-label="Quote 3"></button>
+                                        <button type="button" class="quote-dot" data-quote-index="3" aria-label="Quote 4"></button>
+                                        <button type="button" class="quote-dot" data-quote-index="4" aria-label="Quote 5"></button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="mb-4">
-                        <label for="password" class="form-label small fw-semibold">Password</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-lock text-muted"></i></span>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                        <!-- LOGIN FORM PANEL (Right Side) -->
+                        <div class="col-lg-6">
+                            <div class="login-form-panel">
+                                <div class="login-form-header">
+                                    <div class="login-avatar-badge">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                    <h2 class="login-title">User Sign In</h2>
+                                    <p class="login-caption">Access your personalized nutrition dashboard & food logs</p>
+                                </div>
+
+                                <!-- Standard Login Form (Preserves exact field names & method) -->
+                                <form method="POST" action="{{ url_for('login') }}">
+                                    <!-- Email Field -->
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label-custom">Email Address</label>
+                                        <div class="input-group input-group-custom">
+                                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                            <input type="email"
+                                                   class="form-control"
+                                                   id="email"
+                                                   name="email"
+                                                   placeholder="name@example.com"
+                                                   required
+                                                   autofocus
+                                                   autocomplete="email">
+                                        </div>
+                                    </div>
+
+                                    <!-- Password Field -->
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label for="password" class="form-label-custom mb-0">Password</label>
+                                        </div>
+                                        <div class="input-group input-group-custom">
+                                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                            <input type="password"
+                                                   class="form-control"
+                                                   id="password"
+                                                   name="password"
+                                                   placeholder="Enter your password"
+                                                   required
+                                                   autocomplete="current-password">
+                                            <button type="button"
+                                                    class="btn-toggle-pwd"
+                                                    id="btn-toggle-password"
+                                                    title="Toggle password visibility"
+                                                    aria-label="Show password">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Submit Action Button -->
+                                    <div class="d-grid mb-3">
+                                        <button type="submit" class="btn btn-login-action">
+                                            <i class="bi bi-box-arrow-in-right me-2"></i> Log In to Analyzer
+                                        </button>
+                                    </div>
+
+                                    <!-- Registration Link -->
+                                    <div class="text-center mb-4">
+                                        <span class="text-muted small">Don't have an account yet? </span>
+                                        <a href="{{ url_for('register') }}" class="small fw-bold text-success text-decoration-none">
+                                            Register Here &rarr;
+                                        </a>
+                                    </div>
+                                </form>
+
+                                <!-- Demo Credentials Card for Viva & Demonstrations -->
+                                <div class="demo-box-card">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-shield-check text-success"></i>
+                                            <span class="fw-bold small text-dark">Demo Credentials (Viva Evaluation)</span>
+                                        </div>
+                                        <button type="button" id="btn-fill-demo" class="btn btn-sm btn-outline-success btn-quick-fill" title="Click to auto-fill demo credentials">
+                                            Quick Fill
+                                        </button>
+                                    </div>
+                                    <div class="small text-muted mb-1">
+                                        <strong>User:</strong> <code>john@example.com</code> / <code>User@123</code>
+                                    </div>
+                                    <div class="small text-muted">
+                                        <strong>Admin:</strong> <a href="{{ url_for('admin_login') }}" class="text-decoration-none fw-semibold text-secondary">Go to Admin Portal</a> (<code>admin@nutrition.com</code> / <code>Rakshitha@456</code>)
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="d-grid mb-3">
-                        <button type="submit" class="btn btn-primary-custom btn-lg">
-                            <i class="bi bi-box-arrow-in-right me-1"></i> Log In
-                        </button>
                     </div>
-
-                    <div class="text-center mb-4">
-                        <span class="text-muted small">Don't have an account yet? </span>
-                        <a href="{{ url_for('register') }}" class="small fw-semibold text-success">Register Here</a>
-                    </div>
-                </form>
-
-                <!-- Demo Account Box for Viva Demonstrations -->
-                <div class="border rounded p-3 bg-light">
-                    <div class="d-flex align-items-center mb-1">
-                        <i class="bi bi-info-circle-fill text-primary me-2"></i>
-                        <span class="fw-bold small">Demo Credentials (Viva Demo)</span>
-                    </div>
-                    <p class="text-muted small mb-1"><strong>User:</strong> <code>john@example.com</code> / <code>User@123</code></p>
-                    <p class="text-muted small mb-0"><strong>Admin:</strong> <a href="{{ url_for('admin_login') }}" class="text-decoration-none">Go to Admin Login</a> (<code>admin@nutrition.com</code> / <code>Admin@123</code>)</p>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}

@@ -167,7 +167,7 @@ def init_database():
         print(f"  - Meal Entries table: {meal_count} record(s)")
         print("-" * 65)
         print("Default Demo Accounts:")
-        print("  - Admin: admin@nutrition.com / Admin@123")
+        print("  - Admin: admin@nutrition.com / Rakshitha@456")
         print("  - User:  john@example.com   / User@123")
         print("=" * 65)
         return True

@@ -240,7 +240,7 @@ http://127.0.0.1:5000
 | Role | Username / Email | Password | Access Portal |
 | :--- | :--- | :--- | :--- |
 | **Demo User** | `john@example.com` | `User@123` | `/login` |
-| **Administrator** | `admin@nutrition.com` | `Admin@123` | `/admin/login` |
+| **Administrator** | `admin@nutrition.com` | `Rakshitha@456` | `/admin/login` |
 
 ---
 
