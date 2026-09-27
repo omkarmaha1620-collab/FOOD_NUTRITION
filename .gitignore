@@ -1,28 +1,9 @@
-# Environment / secrets
-.env
-
-# Python
 __pycache__/
-*.py[cod]
-*.pyo
-
-# Virtual environments
-venv/
+*.pyc
 .venv/
+venv/
 env/
-
-# IDE
-.vscode/
-.idea/
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-# Logs
+.env
 *.log
-
-# OS files
-.DS_Store
-Thumbs.db
+.vscode/
+instance/
