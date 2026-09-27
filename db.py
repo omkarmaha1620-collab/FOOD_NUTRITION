@@ -75,3 +75,23 @@ def execute_update(sql, params=None):
     finally:
         if conn:
             conn.close()
+
+def init_reset_table():
+    """
+    Ensure password_resets table exists in MySQL database without affecting other tables.
+    """
+    create_table_sql = """
+    CREATE TABLE IF NOT EXISTS `password_resets` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `token_hash` VARCHAR(64) NOT NULL UNIQUE,
+        `expires_at` DATETIME NOT NULL,
+        `used` TINYINT(1) NOT NULL DEFAULT 0,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT `fk_password_reset_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB;
+    """
+    try:
+        execute_update(create_table_sql)
+    except Exception as e:
+        logger.warning(f"Could not initialize password_resets table: {e}")

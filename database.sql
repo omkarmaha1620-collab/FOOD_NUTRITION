@@ -75,6 +75,20 @@ CREATE TABLE IF NOT EXISTS `meal_entries` (
     CONSTRAINT `fk_meal_food` FOREIGN KEY (`food_id`) REFERENCES `food_items` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- --------------------------------------------------------------
+-- Table: password_resets
+-- Stores secure password reset tokens with hash, expiry, and used status
+-- --------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `password_resets` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NOT NULL,
+    `token_hash` VARCHAR(64) NOT NULL UNIQUE,
+    `expires_at` DATETIME NOT NULL,
+    `used` TINYINT(1) NOT NULL DEFAULT 0,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT `fk_password_reset_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 -- ==============================================================
 -- SEED DATA
 -- ==============================================================

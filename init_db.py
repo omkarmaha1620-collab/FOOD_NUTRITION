@@ -10,7 +10,7 @@ import sys
 import pymysql
 from config import Config
 
-REQUIRED_TABLES = {'users', 'admins', 'food_items', 'meal_entries'}
+REQUIRED_TABLES = {'users', 'admins', 'food_items', 'meal_entries', 'password_resets'}
 
 def parse_sql_file(file_path):
     """
@@ -161,10 +161,11 @@ def init_database():
 
         print("-" * 65)
         print("VERIFICATION PASSED: All tables and seed data created successfully!")
-        print(f"  - Users table:        {user_count} record(s)")
-        print(f"  - Admins table:       {admin_count} record(s)")
-        print(f"  - Food Items table:   {food_count} record(s) across 9 categories")
-        print(f"  - Meal Entries table: {meal_count} record(s)")
+        print(f"  - Users table:           {user_count} record(s)")
+        print(f"  - Admins table:          {admin_count} record(s)")
+        print(f"  - Food Items table:      {food_count} record(s) across 9 categories")
+        print(f"  - Meal Entries table:    {meal_count} record(s)")
+        print(f"  - Password Resets table: verified ready")
         print("-" * 65)
         print("Default Demo Accounts:")
         print("  - Admin: admin@nutrition.com / Rakshitha@456")

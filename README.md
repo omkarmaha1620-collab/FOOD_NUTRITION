@@ -61,11 +61,18 @@ The complete user workflow is structured as follows:
 
 ## 4. System Modules Breakdown (12 Modules)
 
-### Module 1: User Registration and Login
+### Module 1: User Registration, Login & Password Reset
 - Registration collects full name, email, password, age, gender, height (cm), weight (kg), and activity level.
 - Passwords are encrypted using salted `scrypt` hashing (`werkzeug.security`).
 - Secure session-based authentication (`session['user_id']`).
 - Client-side and server-side form validation (positive numerical ranges, email formatting).
+- **Secure Password Reset Workflow**:
+  - "Forgot Password?" entry on login page.
+  - Anti-enumeration protection (generic status response).
+  - Cryptographically secure 256-bit reset tokens (`secrets.token_urlsafe(32)`).
+  - SHA-256 token hashing in MySQL database (`password_resets` table); raw tokens are never stored.
+  - 30-minute token expiration and single-use invalidation.
+  - SMTP email dispatch with HTML/plain-text templates; automated development mode fallback for local evaluation.
 
 ### Module 2: User Profile
 - Displays and allows updating of physical metrics: Name, Age, Gender, Height, Weight, Activity Level.

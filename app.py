@@ -4,17 +4,31 @@ College Mini Project Web Application
 """
 
 import os
+import secrets
+import hashlib
+import smtplib
+import logging
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from datetime import datetime, date, timedelta
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from config import Config
-from db import execute_query, execute_insert, execute_update
+from db import execute_query, execute_insert, execute_update, init_reset_table
 from nutrition_calc import calculate_nutrient_consumed, calculate_bmi, calculate_calorie_requirement
+
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Auto-ensure database tables including password_resets are ready
+try:
+    init_reset_table()
+except Exception as e:
+    logger.warning(f"Failed to auto-verify password_resets table on startup: {e}")
 
 # -----------------------------------------------------------------------------
 # AUTHENTICATION DECORATORS & HELPERS
@@ -231,6 +245,278 @@ def logout():
     session.clear()
     flash('You have been logged out successfully.', 'info')
     return redirect(url_for('login'))
+
+# -----------------------------------------------------------------------------
+# PASSWORD RESET & EMAIL RECOVERY MODULE
+# -----------------------------------------------------------------------------
+
+def send_reset_email(to_email, user_name, reset_url):
+    """
+    Sends password reset email via SMTP (e.g., Gmail SMTP) using settings from .env.
+    Returns:
+        tuple: (status, error_message, dev_link)
+        status: 'sent' | 'dev_fallback' | 'failed'
+    """
+    mail_server = app.config.get('MAIL_SERVER', '').strip()
+    mail_port = int(app.config.get('MAIL_PORT', 587))
+    mail_username = app.config.get('MAIL_USERNAME', '').strip()
+    mail_password = app.config.get('MAIL_PASSWORD', '').strip()
+    mail_use_tls = app.config.get('MAIL_USE_TLS', True)
+    mail_use_ssl = app.config.get('MAIL_USE_SSL', False)
+    mail_sender = app.config.get('MAIL_DEFAULT_SENDER', '').strip() or mail_username
+
+    # Development fallback strictly when SMTP credentials are not configured in .env
+    if not mail_server or not mail_username or not mail_password:
+        logger.info(f"[DEVELOPMENT MODE] SMTP credentials unconfigured in .env. Falling back to local testing link for {to_email}.")
+        return 'dev_fallback', None, reset_url
+
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = 'Password Reset Request - Food Nutrition Analyzer'
+        msg['From'] = f"Food Nutrition Analyzer <{mail_sender}>"
+        msg['To'] = to_email
+        msg['Reply-To'] = mail_sender
+
+        expiry_mins = app.config.get('RESET_TOKEN_EXPIRY_MINUTES', 30)
+
+        text_body = f"""Hello {user_name},
+
+You requested to reset your password for Food Nutrition Analyzer.
+Please use the following link to reset your password (valid for {expiry_mins} minutes):
+
+{reset_url}
+
+If you did not request this, please ignore this email. Your password will remain unchanged.
+
+Best regards,
+Food Nutrition Analyzer Team
+"""
+        html_body = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {{ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #1e293b; padding: 24px; margin: 0; }}
+        .card {{ max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }}
+        .header {{ text-align: center; margin-bottom: 24px; }}
+        .header h2 {{ color: #065f46; margin: 6px 0 0; font-size: 22px; font-weight: 700; }}
+        .btn {{ display: inline-block; background-color: #10b981; color: #ffffff !important; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; margin: 20px 0; }}
+        .footer {{ margin-top: 24px; font-size: 12px; color: #64748b; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 16px; }}
+        .note {{ font-size: 13px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-top: 16px; word-break: break-all; }}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <h2>Food Nutrition Analyzer</h2>
+            <p style="color: #64748b; font-size: 14px; margin-top: 4px;">Password Reset Request</p>
+        </div>
+        <p>Hello <strong>{user_name}</strong>,</p>
+        <p>We received a request to reset the password for your NutriAnalyzer account. Click the button below to choose a new password:</p>
+        <div style="text-align: center;">
+            <a href="{reset_url}" class="btn">Reset Password</a>
+        </div>
+        <div class="note">
+            <strong>Link validity:</strong> This link expires in {expiry_mins} minutes. If the button above does not work, copy and paste this link into your browser:<br>
+            <a href="{reset_url}" style="color: #10b981;">{reset_url}</a>
+        </div>
+        <p style="font-size: 13px; color: #64748b; margin-top: 16px;">
+            If you did not make this request, you can safely ignore this email. Your current password remains secure.
+        </p>
+        <div class="footer">
+            &copy; {datetime.now().year} Food Nutrition Analyzer &bull; College Mini Project
+        </div>
+    </div>
+</body>
+</html>"""
+
+        msg.attach(MIMEText(text_body, 'plain', 'utf-8'))
+        msg.attach(MIMEText(html_body, 'html', 'utf-8'))
+
+        if mail_use_ssl:
+            with smtplib.SMTP_SSL(mail_server, mail_port, timeout=15) as server:
+                server.login(mail_username, mail_password)
+                server.send_message(msg)
+        else:
+            with smtplib.SMTP(mail_server, mail_port, timeout=15) as server:
+                if mail_use_tls:
+                    server.starttls()
+                server.login(mail_username, mail_password)
+                server.send_message(msg)
+
+        logger.info("Password reset email dispatched successfully via SMTP to recipient.")
+        return 'sent', None, None
+
+    except smtplib.SMTPAuthenticationError as e:
+        logger.error(f"SMTP Authentication Error: Credentials rejected by {mail_server}.")
+        return 'failed', 'SMTP authentication failed. Please verify your Gmail address and 16-character App Password in .env.', None
+    except (smtplib.SMTPConnectError, smtplib.SMTPServerDisconnected, TimeoutError, OSError) as e:
+        logger.error(f"SMTP Connection Error: Could not connect to {mail_server}:{mail_port}.")
+        return 'failed', f'Could not connect to {mail_server}:{mail_port}. Please check your network connection.', None
+    except smtplib.SMTPException as e:
+        logger.error(f"SMTP Protocol Exception during dispatch: {type(e).__name__}")
+        return 'failed', f'Mail delivery error: {str(e)}', None
+    except Exception as e:
+        logger.error(f"Unexpected email dispatch error: {type(e).__name__}")
+        return 'failed', 'An unexpected error occurred while attempting to send the email.', None
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    """Request password reset link with email validation & anti-enumeration protection"""
+    if request.method == 'GET' and 'user_id' in session:
+        return redirect(url_for('dashboard'))
+
+    dev_reset_link = None
+    entered_email = ''
+
+    if request.method == 'POST':
+        entered_email = request.form.get('email', '').strip().lower()
+        if not entered_email or '@' not in entered_email or '.' not in entered_email:
+            flash('Please enter a valid email address.', 'warning')
+            return render_template('forgot_password.html', entered_email=entered_email)
+
+        try:
+            # Query user by email
+            user = execute_query(
+                "SELECT id, name, email FROM users WHERE email = %s",
+                (entered_email,),
+                fetch_one=True
+            )
+
+            # Always display generic message to avoid email enumeration
+            generic_message = "If an account exists for this email, a password reset link has been sent."
+
+            if user:
+                # Invalidate any existing unused tokens for this user
+                execute_update(
+                    "UPDATE password_resets SET used = 1 WHERE user_id = %s AND used = 0",
+                    (user['id'],)
+                )
+
+                # Generate cryptographically secure random token (32 bytes = 256 bits entropy)
+                raw_token = secrets.token_urlsafe(32)
+                token_hash = hashlib.sha256(raw_token.encode('utf-8')).hexdigest()
+
+                # Calculate expiration timestamp (default 30 mins)
+                expiry_minutes = app.config.get('RESET_TOKEN_EXPIRY_MINUTES', 30)
+                expires_at = datetime.now() + timedelta(minutes=expiry_minutes)
+
+                # Store token hash securely in database (NEVER store plaintext token)
+                execute_insert(
+                    """INSERT INTO password_resets (user_id, token_hash, expires_at, used)
+                       VALUES (%s, %s, %s, 0)""",
+                    (user['id'], token_hash, expires_at)
+                )
+
+                # Construct reset link
+                reset_url = url_for('reset_password', token=raw_token, _external=True)
+
+                # Send email via SMTP (or fallback if unconfigured)
+                status, error_msg, dev_link = send_reset_email(user['email'], user['name'], reset_url)
+
+                if status == 'sent':
+                    # Email delivered successfully via SMTP. Do NOT display raw reset URL on page.
+                    flash(generic_message, 'info')
+                    return render_template('forgot_password.html', entered_email='')
+
+                elif status == 'dev_fallback':
+                    # SMTP is genuinely unconfigured in .env
+                    flash(generic_message, 'info')
+                    return render_template('forgot_password.html', dev_reset_link=dev_link, entered_email='')
+
+                elif status == 'failed':
+                    # Clear error handling if SMTP sending fails
+                    flash(f"Email delivery error: {error_msg}", 'danger')
+                    return render_template('forgot_password.html', entered_email=entered_email)
+            else:
+                # Anti-enumeration response
+                flash(generic_message, 'info')
+                return render_template('forgot_password.html', entered_email='')
+
+        except Exception as e:
+            logger.error(f"Error during forgot password request: {e}")
+            flash('An unexpected error occurred while processing your request. Please try again.', 'danger')
+
+    return render_template('forgot_password.html', dev_reset_link=dev_reset_link, entered_email=entered_email)
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    """Validate reset token and update user password with Werkzeug hashing"""
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+
+    # Security check: Token must be non-empty string
+    if not token or len(token) < 16:
+        flash('The password reset link is invalid. Please request a new one.', 'danger')
+        return redirect(url_for('forgot_password'))
+
+    token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+
+    try:
+        reset_entry = execute_query(
+            """SELECT pr.id, pr.user_id, pr.expires_at, pr.used, u.email, u.name
+               FROM password_resets pr
+               JOIN users u ON pr.user_id = u.id
+               WHERE pr.token_hash = %s""",
+            (token_hash,),
+            fetch_one=True
+        )
+
+        if not reset_entry:
+            flash('The password reset link is invalid or does not exist. Please request a new one.', 'danger')
+            return redirect(url_for('forgot_password'))
+
+        if reset_entry['used']:
+            flash('This password reset link has already been used. Please request a new one.', 'danger')
+            return redirect(url_for('forgot_password'))
+
+        if datetime.now() > reset_entry['expires_at']:
+            flash('This password reset link has expired. Reset links are valid for 30 minutes.', 'danger')
+            return redirect(url_for('forgot_password'))
+
+        if request.method == 'POST':
+            password = request.form.get('password', '')
+            confirm_password = request.form.get('confirm_password', '')
+
+            # Validation
+            if not password or len(password) < 6:
+                flash('Password must be at least 6 characters long.', 'danger')
+                return render_template('reset_password.html', token=token)
+
+            if password != confirm_password:
+                flash('Passwords do not match. Please ensure both fields are identical.', 'danger')
+                return render_template('reset_password.html', token=token)
+
+            # Hash the new password using Werkzeug's secure password hashing
+            new_password_hash = generate_password_hash(password)
+
+            # Update the user's password in the users table
+            execute_update(
+                "UPDATE users SET password_hash = %s WHERE id = %s",
+                (new_password_hash, reset_entry['user_id'])
+            )
+
+            # Mark this reset token as used (single-use enforcement)
+            execute_update(
+                "UPDATE password_resets SET used = 1 WHERE id = %s",
+                (reset_entry['id'],)
+            )
+
+            # Invalidate any other pending reset tokens for this user
+            execute_update(
+                "UPDATE password_resets SET used = 1 WHERE user_id = %s",
+                (reset_entry['user_id'],)
+            )
+
+            flash('Your password has been reset successfully! You can now log in with your new password.', 'success')
+            return redirect(url_for('login'))
+
+        return render_template('reset_password.html', token=token)
+
+    except Exception as e:
+        logger.error(f"Error during password reset execution: {e}")
+        flash('An unexpected error occurred during password reset. Please try again.', 'danger')
+        return redirect(url_for('forgot_password'))
 
 # -----------------------------------------------------------------------------
 # MODULE 2: USER PROFILE & HEALTH METRICS (MODULE 8 & MODULE 9)
