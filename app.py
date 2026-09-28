@@ -363,9 +363,6 @@ Food Nutrition Analyzer Team
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     """Request password reset link with email validation & anti-enumeration protection"""
-    if request.method == 'GET' and 'user_id' in session:
-        return redirect(url_for('dashboard'))
-
     dev_reset_link = None
     entered_email = ''
 
